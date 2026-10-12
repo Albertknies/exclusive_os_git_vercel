@@ -8,7 +8,8 @@
     "dev": "node scripts/server.js",
     "check": "node scripts/check.js",
     "test:flows": "node scripts/test-flows.js",
-    "bootstrap:ceo": "node scripts/bootstrap-ceo.js"
+    "bootstrap:ceo": "node scripts/bootstrap-ceo.js",
+    "test": "node scripts/test-flows.js"
   },
   "engines": {
     "node": ">=18"
