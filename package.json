@@ -1,0 +1,12 @@
+{
+  "name": "exclusive-os-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Protótipo local do Exclusive OS - não adequado para produção",
+  "scripts": {
+    "start": "node scripts/server.js",
+    "dev": "node scripts/server.js",
+    "check": "node scripts/check.js"
+  },
+  "engines": { "node": ">=18" }
+}
