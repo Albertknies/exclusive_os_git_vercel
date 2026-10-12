@@ -1,0 +1,44 @@
+/* Exclusive OS — navegação Carteira > Condomínio, versão demonstrativa. */
+(function(){
+ 'use strict';
+ const styles=document.createElement('style');
+ styles.textContent=`
+ .ex-breadcrumb{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:18px;font-size:13px;color:#68677a}
+ .ex-breadcrumb button{border:0;background:transparent;color:#302f61;cursor:pointer;font:inherit;font-weight:700;padding:4px 0}
+ .ex-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+ .ex-actions h2{margin:0;font-size:21px;color:#252453}
+ .ex-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+ .ex-summary>div{background:#fff;border:1px solid #e7e4e3;border-radius:12px;padding:17px}
+ .ex-summary small{display:block;color:#77758b;margin-bottom:7px}.ex-summary strong{font-size:23px;color:#302f61}
+ .ex-table{width:100%;border-collapse:collapse}.ex-table th{text-align:left;background:#f5f4f7;color:#5d5b70;font-size:12px;padding:12px}.ex-table td{padding:13px 12px;border-top:1px solid #eeedf0}
+ .ex-table tbody tr{cursor:pointer}.ex-table tbody tr:hover{background:#f9f7f1}
+ .ex-name{font-weight:750;color:#302f61}.ex-muted{font-size:12px;color:#77758b}
+ .ex-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+ .ex-detail{border:1px solid #e9e7ed;border-radius:10px;padding:14px;min-width:0;overflow-wrap:anywhere}
+ .ex-detail small{display:block;color:#747287;margin-bottom:6px}.ex-detail strong{color:#252453;font-size:14px}
+ .ex-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.ex-tabs button{border:1px solid #dedce6;background:#fff;border-radius:9px;padding:10px 14px;color:#302f61;cursor:pointer}.ex-tabs button.active{background:#302f61;color:#fff}
+ @media(max-width:700px){.ex-summary,.ex-details{grid-template-columns:1fr}.ex-table th:nth-child(3),.ex-table td:nth-child(3){display:none}}
+ `;
+ document.head.appendChild(styles);
+ const safe=x=>esc(x==null?'':x);
+ const visibleCondos=()=>db.condos.filter(c=>currentUser()?.perfil!=='Síndico'||c.sindico===currentUser().nome);
+ const back=()=>`<div class="ex-breadcrumb"><button onclick="UI.page('dashboard')">Início</button><span>›</span><button onclick="UI.page('team')">Carteiras</button>${state.portfolio?`<span>›</span><button onclick="UI.openPortfolio(${JSON.stringify(state.portfolio).replace(/"/g,'&quot;')})">${safe(state.portfolio)}</button>`:''}${state.page==='condoProfile'?'<span>›</span><span>Condomínio</span>':''}</div>`;
+ const field=(name,value)=>`<div class="ex-detail"><small>${safe(name)}</small><strong>${safe(value||'Não informado')}</strong></div>`;
+ headings.portfolio=['Carteira do síndico','Condomínios sob responsabilidade e acompanhamento operacional.'];
+ headings.condoProfile=['Ficha do condomínio','Informações cadastrais, processos e acompanhamento em um só lugar.'];
+ UI.openPortfolio=function(name){state.portfolio=name;state.portfolioQuery='';state.page='portfolio';state.mobile=false;render();window.scrollTo(0,0)};
+ UI.staff=function(name){UI.openPortfolio(name)};
+ UI.portfolioSearch=function(value){state.portfolioQuery=value;let tbody=document.getElementById('ex-portfolio-body');if(tbody)tbody.innerHTML=portfolioRows()};
+ function portfolioRows(){let q=(state.portfolioQuery||'').trim().toLocaleLowerCase('pt-BR');let items=visibleCondos().filter(c=>c.sindico===state.portfolio&&`${c.nome} ${c.endereco||''} ${c.cnpj||''}`.toLocaleLowerCase('pt-BR').includes(q)).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+ return items.map(c=>`<tr onclick="UI.detailCondo(${Number(c.id)})" tabindex="0" onkeydown="if(event.key==='Enter')UI.detailCondo(${Number(c.id)})"><td><div class="ex-name">${safe(c.nome)}</div><span class="ex-muted">${safe(c.endereco||'Endereço não cadastrado')}</span></td><td>${pill(c.classe||'Não definida')}</td><td>${safe(c.status||'Não informado')}</td><td><button class="btn secondary small" onclick="event.stopPropagation();UI.detailCondo(${Number(c.id)})">Abrir ficha →</button></td></tr>`).join('')||'<tr><td colspan="4">Nenhum condomínio encontrado.</td></tr>'}
+ views.portfolio=function(){let name=state.portfolio||'';let condos=visibleCondos().filter(c=>c.sindico===name);let tasks=db.tasks.filter(t=>condos.some(c=>c.id===t.condoId)&&t.status!=='Concluída');return `${back()}<div class="ex-actions"><div><h2>Carteira de ${safe(name)}</h2><p class="sub">Selecione um condomínio para consultar a ficha completa.</p></div><button class="btn secondary small" onclick="UI.page('team')">← Todas as carteiras</button></div><div class="ex-summary"><div><small>Condomínios</small><strong>${condos.length}</strong></div><div><small>Carga operacional</small><strong>${condos.reduce((s,c)=>s+(WEIGHTS[c.classe]||0),0)} pts</strong></div><div><small>Processos em aberto</small><strong>${tasks.length}</strong></div></div><div class="panel">${titlePanel('Condomínios da carteira')}<div class="toolbar"><input class="input search" placeholder="Buscar condomínio, endereço ou CNPJ" oninput="UI.portfolioSearch(this.value)" value="${safe(state.portfolioQuery||'')}"><span class="sub">${condos.length} condomínios</span></div><div class="tablewrap"><table class="ex-table"><thead><tr><th>Condomínio</th><th>Classe</th><th>Situação</th><th>Ação</th></tr></thead><tbody id="ex-portfolio-body">${portfolioRows()}</tbody></table></div></div>`};
+ const originalDetail=UI.detailCondo;
+ UI.detailCondo=function(id){let c=condo(id);if(!c||!visibleCondos().some(x=>x.id===c.id)){alert('Condomínio indisponível para este perfil.');return}state.detail=Number(id);state.portfolio=c.sindico;state.condoTab='cadastro';state.page='condoProfile';state.modal=null;render();window.scrollTo(0,0)};
+ UI.condoTab=function(tab){state.condoTab=tab;render()};
+ views.condoProfile=function(){let c=condo(state.detail);if(!c||!visibleCondos().some(x=>x.id===c.id))return '<div class="panel">Cadastro não disponível.</div>';
+ let tasks=db.tasks.filter(t=>Number(t.condoId)===Number(c.id));let inspections=db.inspections.filter(i=>Number(i.condoId)===Number(c.id));let tab=state.condoTab||'cadastro';let tabs=[['cadastro','Dados gerais'],['processos','Chamados e tarefas'],['vistorias','Vistorias']];
+ let content=tab==='cadastro'?`<div class="ex-details">${field('Condomínio',c.nome)}${field('Síndico responsável',c.sindico)}${field('CNPJ',c.cnpj)}${field('Endereço',c.endereco)}${field('Região',c.regiao)}${field('Unidades',c.unidades)}${field('Classificação',c.classe)}${field('Situação',c.status)}${DETAIL_FIELDS.filter(([k])=>!['cnpj','endereco'].includes(k)).map(([k,label])=>field(label,c[k])).join('')}</div><p class="sub" style="margin-top:15px">Campos sem informação aparecem como “Não informado”. Dados de acesso, senhas e credenciais não fazem parte desta ficha pública demonstrativa.</p>`:tab==='processos'?`<div class="tablewrap"><table class="ex-table"><thead><tr><th>Processo</th><th>Status</th><th>Prazo</th><th>Ação</th></tr></thead><tbody>${tasks.map(t=>`<tr onclick="UI.detailTask(${Number(t.id)})"><td>${safe(t.titulo)}</td><td>${safe(t.status)}</td><td>${safe(fmt(t.prazo))}</td><td><button class="btn secondary small">Visualizar</button></td></tr>`).join('')||'<tr><td colspan="4">Nenhum processo registrado.</td></tr>'}</tbody></table></div>`:`<div class="tablewrap"><table class="ex-table"><thead><tr><th>Data</th><th>Responsável</th><th>Status</th><th>Ação</th></tr></thead><tbody>${inspections.map(i=>`<tr onclick="UI.detailInspection(${Number(i.id)})"><td>${safe(fmt(i.data))}</td><td>${safe(i.responsavel)}</td><td>${safe(i.status)}</td><td><button class="btn secondary small">Visualizar</button></td></tr>`).join('')||'<tr><td colspan="4">Nenhuma vistoria registrada.</td></tr>'}</tbody></table></div>`;
+ return `${back()}<div class="ex-actions"><div><h2>${safe(c.nome)}</h2><p class="sub">Responsável: ${safe(c.sindico)} · ${safe(c.status||'Situação não informada')}</p></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondary small" onclick="UI.openPortfolio(${JSON.stringify(c.sindico).replace(/"/g,'&quot;')})">← Voltar à carteira</button>${canEditCondo()?`<button class="btn small" onclick="UI.editCondo(${Number(c.id)})">Editar cadastro</button>`:''}</div></div><div class="ex-summary"><div><small>Classe</small><strong>${safe(c.classe||'—')}</strong></div><div><small>Processos em aberto</small><strong>${tasks.filter(t=>t.status!=='Concluída').length}</strong></div><div><small>Vistorias registradas</small><strong>${inspections.length}</strong></div></div><div class="ex-tabs">${tabs.map(([id,label])=>`<button class="${tab===id?'active':''}" onclick="UI.condoTab('${id}')">${label}</button>`).join('')}</div><div class="panel">${content}</div>`};
+ // O cadastro original continua acessível para edição e outras ações do sistema.
+ UI.detailCondoModal=originalDetail;
+})();

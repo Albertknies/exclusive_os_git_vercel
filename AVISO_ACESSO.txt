@@ -1,0 +1,4 @@
+A dica de CPF e senha foi retirada da tela inicial.
+NÃO foram cadastrados CPF e senha reais no código público.
+O login permanece demonstrativo, usando armazenamento local do navegador.
+Para acesso real de CEO/Master, implementar autenticação no servidor, banco de dados e hash de senha.

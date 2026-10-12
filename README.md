@@ -42,3 +42,15 @@ Requer Node 18+. Execute `npm run check`, depois `npm start` e abra `http://loca
 - Fotos de vistoria ficam no IndexedDB local, não no backend.
 - Geração de PDF é via impressão do navegador.
 - Nenhum teste completo de segurança ou E2E de produção foi realizado.
+
+## Testes automatizados com dados fictícios
+
+Execute `npm run check` e `npm run test:flows` na raiz do projeto.
+O segundo comando executa 14 cenários de integridade e regras sobre dados de teste **somente em memória**, gerando `test-results/report.json`. Os registros TESTE não são gravados no aplicativo, não aparecem na Vercel e não precisam ser removidos. Os 103 condomínios importados permanecem intactos.
+
+**Limites:** os cenários não testam a interface clicando em botões, não verificam autenticação real e não fazem chamadas ao backend. O login e as permissões da aplicação continuam demonstrativos, sem segurança de produção. Não cadastre CPFs ou senhas reais nessa versão.
+
+
+## Importação direta de vistorias (protótipo)
+
+Na aba **Vistorias**, use **Selecionar PDF de vistoria**. O arquivo é lido localmente por PDF.js. O sistema apresenta o condomínio sugerido (quando o nome do arquivo corresponder exatamente), exige confirmação do condomínio, data e vistoriador, e cria uma vistoria com os itens reconhecidos. Itens sem correspondência são registrados nas observações para revisão. A importação não extrai imagens embutidas, não executa OCR e não envia dados ao backend. O registro fica no localStorage do navegador, portanto não está sincronizado nem é adequado para produção.
