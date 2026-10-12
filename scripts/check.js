@@ -7,4 +7,9 @@ const allowed=new Set(['id','nome','sindico','classe','status']);
 for(const row of data){for(const key of Object.keys(row))if(!allowed.has(key))throw Error('Unexpected public data: '+key);}
 for(const [,url] of html.matchAll(/<script[^>]+src="\/([^"]+)"/g))if(!fs.existsSync(path.join('public',url)))throw Error('Missing script: '+url);
 for(const f of fs.readdirSync('public').filter(f=>f.endsWith('.js')))new vm.Script(fs.readFileSync(path.join('public',f),'utf8'),{filename:f});
+// Smoke test: initialization must not iterate beyond the six allocation groups.
+const seedSource=html.slice(html.indexOf("'use strict';"),html.indexOf("const STORE="));
+const context=vm.createContext({Date});
+vm.runInContext(seedSource+';globalThis.__seedResult=seed();',context);
+if(!Array.isArray(context.__seedResult.condos)||context.__seedResult.condos.length===0)throw Error('Seed initialization failed');
 console.log('OK: scripts parse; references exist; 103 minimal public condo records; no operational CSV.');
