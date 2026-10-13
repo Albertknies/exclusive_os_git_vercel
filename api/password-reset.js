@@ -23,9 +23,10 @@ module.exports=async(req,res)=>{
  if(!key||!from)return send(res,503,{error:'Recuperação por e-mail ainda não configurada'});
  const token=crypto.randomBytes(32).toString('hex');
  const link='https://'+host+'/redefinir-senha.html?token='+encodeURIComponent(token);
+ const {error:ie}=await client.from('os_password_resets').insert({user_id:u.id,token_hash:digest(token),expires_at:new Date(Date.now()+15*60*1000).toISOString()});if(ie)throw ie;
  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify({from,to:[email],subject:'Exclusive OS — redefinição de senha',text:'Você solicitou redefinir sua senha do Exclusive OS. Abra este link em até 15 minutos: '+link+'\n\nSe não solicitou, ignore esta mensagem.'})});
  if(!response.ok)throw Error('Falha no serviço de e-mail');
- const {error:ie}=await client.from('os_password_resets').insert({user_id:u.id,token_hash:digest(token),expires_at:new Date(Date.now()+15*60*1000).toISOString()});if(ie)throw ie;
+ 
  return send(res,200,generic);
  }
  if(action==='confirm'){
