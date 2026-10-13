@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Ativação Master | Exclusive OS</title>
+<style>body{font:16px system-ui;background:#0c1320;color:#eef2f8;display:grid;place-items:center;min-height:100vh;margin:0;padding:20px;box-sizing:border-box}main{width:min(440px,100%);background:#182338;border-radius:16px;padding:28px;box-sizing:border-box}label{display:block;margin-top:15px}input{box-sizing:border-box;width:100%;padding:12px;margin-top:6px;border-radius:7px;border:1px solid #65758c;background:#fff;color:#101820;font:inherit}button{margin-top:22px;padding:13px;width:100%;border:0;border-radius:8px;background:#2d86e8;color:white;font:inherit;font-weight:700;cursor:pointer}button:disabled{opacity:.6}small{color:#cbd5e1}#result{white-space:pre-wrap}</style></head>
+<body><main><h1>Ativar administrador Master</h1><p>Exclusive OS — cadastro inicial protegido.</p><form id="f">
+<label>Nome completo<input name="nome" autocomplete="name" required minlength="2" value="Albert Rolim Knies"></label>
+<label>E-mail<input name="email" type="email" autocomplete="email" required value="knies.adm@gmail.com"></label>
+<label>CPF<input name="cpf" inputmode="numeric" autocomplete="off" required maxlength="14" placeholder="Somente números"></label>
+<label>Token temporário da Vercel<input name="token" type="password" autocomplete="off" required minlength="32"></label>
+<label>Nova senha (mínimo 12 caracteres)<input name="senha" type="password" autocomplete="new-password" required minlength="12"></label>
+<label>Confirme a nova senha<input name="confirmar" type="password" autocomplete="new-password" required minlength="12"></label>
+<button type="submit">Ativar Master</button><p id="result" role="status" aria-live="polite"></p></form>
+<small>O token e a senha são enviados somente ao servidor do Exclusive OS por HTTPS. Não compartilhe esses dados no chat.</small></main>
+<script>
+const f=document.querySelector('#f'),out=document.querySelector('#result'),btn=f.querySelector('button');
+f.addEventListener('submit',async e=>{e.preventDefault();out.textContent='';const b=Object.fromEntries(new FormData(f));if(b.senha!==b.confirmar){out.textContent='As senhas não coincidem.';return}delete b.confirmar;btn.disabled=true;try{const r=await fetch('/api/bootstrap-master',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify(b)});const data=await r.json();if(!r.ok)throw Error(data.error||'Falha na ativação');out.textContent='Conta Master criada com sucesso. Guarde sua senha e solicite a remoção do token da Vercel.';f.reset()}catch(err){out.textContent=err.message}finally{btn.disabled=false}});
+</script></body></html>
