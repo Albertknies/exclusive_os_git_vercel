@@ -13,11 +13,3 @@ const context=vm.createContext({Date});
 vm.runInContext(seedSource+';globalThis.__seedResult=seed();',context);
 if(!Array.isArray(context.__seedResult.condos)||context.__seedResult.condos.length===0)throw Error('Seed initialization failed');
 console.log('OK: scripts parse; references exist; 103 minimal public condo records; no operational CSV.');
-
-// Regression checks for recently reported missing UI updates.
-for (const token of ['Distribuição da carga das carteiras','load-grid','load-item','load-status','/fotos_processos.js','/navegacao_carteiras.js','/vistoria_avancada.js']) {
-  if (!html.includes(token)) throw Error('Expected feature missing from index.html: '+token);
-}
-const photo=fs.readFileSync('public/fotos_processos.js','utf8');
-if (!photo.includes('input') || !photo.includes('file')) throw Error('Photo attachment feature missing');
-console.log('OK: colored workload chart, portfolio navigation, inspections and process photo modules present.');

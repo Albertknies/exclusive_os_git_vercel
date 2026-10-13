@@ -16,3 +16,6 @@ Master pode criar e alterar todos os perfis. Gerente pode criar e editar perfis 
 
 ## Segurança e limites
 O login usa CPF como identificador, mas não exibe senhas existentes. Não coloque dados reais na aplicação legada, cujo armazenamento ainda é local. Ative proteção contra força bruta/WAF e MFA antes do uso produtivo. Registros de auditoria não incluem conteúdo da senha. A API não envia e-mail de convite nem aplica restrições operacionais nos módulos antigos.
+
+
+**Atualização V2:** consulte `GUIA_PUBLICACAO_V2.md` para módulos operacionais e limites.

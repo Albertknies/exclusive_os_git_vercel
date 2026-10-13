@@ -1,6 +1,6 @@
 {
-  "name": "exclusive-os-demo",
-  "version": "1.0.0",
+  "name": "exclusive-os-backend-integrado",
+  "version": "2.0.0",
   "private": true,
   "description": "Protótipo local do Exclusive OS - não adequado para produção",
   "scripts": {
@@ -9,7 +9,8 @@
     "check": "node scripts/check.js",
     "test:flows": "node scripts/test-flows.js",
     "bootstrap:ceo": "node scripts/bootstrap-ceo.js",
-    "test": "node scripts/test-flows.js"
+    "import:condos": "node scripts/importar-condominios.js",
+    "test:backend": "node scripts/test-backend.js"
   },
   "engines": {
     "node": ">=18"
