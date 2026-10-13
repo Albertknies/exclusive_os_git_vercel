@@ -4,9 +4,9 @@ const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONFIG={
  condominios:{table:'os_condominios',fields:['nome','sindico','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,sindico,classe,status,unidades,regiao,equipamentos,updated_at'},
  financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
- tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
+ tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
  chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
- processos:{table:'os_processos',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
+ processos:{table:'os_processos',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
  vistorias:{table:'os_vistorias',fields:['condominio_id','titulo','data_vistoria','observacoes','status'],select:'id,condominio_id,titulo,data_vistoria,observacoes,status,created_at,updated_at'}
 };
 function error(res,n,msg){return res.status(n).json({error:msg})}
@@ -23,6 +23,9 @@ function clean(entity,body){
  if(out.classe!==undefined&&!['A','B','C','D'].includes(out.classe))throw Error('Classe inválida');
  if(out.tipo!==undefined&&!['Receita','Despesa'].includes(out.tipo))throw Error('Tipo inválido');
  if(out.valor!==undefined){if(out.valor===''||!Number.isFinite(Number(out.valor))||Number(out.valor)<0||Number(out.valor)>1000000000)throw Error('Valor inválido');out.valor=Number(out.valor)}
+ if(out.categoria!==undefined&&(typeof out.categoria!=='string'||out.categoria.length>100))throw Error('Categoria inválida');
+ if(out.prazo!==undefined&&out.prazo!==''&&(!/^\d{4}-\d{2}-\d{2}$/.test(out.prazo)||Number.isNaN(Date.parse(out.prazo))))throw Error('Prazo inválido');
+ if(out.prazo==='')out.prazo=null;
  if(out.vencimento!==undefined&&(!/^\d{4}-\d{2}-\d{2}$/.test(out.vencimento)||Number.isNaN(Date.parse(out.vencimento))))throw Error('Vencimento inválido');
  if(out.prioridade!==undefined&&!['Baixa','Normal','Alta','Urgente'].includes(out.prioridade))throw Error('Prioridade inválida');
  if(out.status!==undefined&&!({condominios:['Ativo','Inativo'],processos:['Aberto','Em andamento','Concluído','Cancelado'],chamados:['Aberto','Em andamento','Concluído','Cancelado'],tarefas:['Aberto','Em andamento','Concluído','Cancelado'],financeiro:['Pendente','Pago','Cancelado'],vistorias:['Pendente','Em andamento','Concluída']}[entity].includes(out.status)))throw Error('Status inválido');
