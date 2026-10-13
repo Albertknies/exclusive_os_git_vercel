@@ -2,7 +2,7 @@ const {db,session,publicUser}=require('../lib/access');
 const ROLES_ADMIN=new Set(['Master','Gerente','Administrativo']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONFIG={
- condominios:{table:'os_condominios',fields:['nome','sindico','classe','status'],select:'id,codigo,nome,sindico,classe,status,updated_at'},
+ condominios:{table:'os_condominios',fields:['nome','sindico','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,sindico,classe,status,unidades,regiao,equipamentos,updated_at'},
  financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
  tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
  chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
@@ -17,6 +17,9 @@ function clean(entity,body){
  if(out.titulo!==undefined&&(!out.titulo||out.titulo.length<3||out.titulo.length>180))throw Error('Título inválido');
  for(const k of ['descricao','observacoes'])if(out[k]!==undefined&&(typeof out[k]!=='string'||out[k].length>10000))throw Error('Texto excede limite');
  if(out.sindico!==undefined&&(typeof out.sindico!=='string'||out.sindico.length>150))throw Error('Síndico inválido');
+ if(out.unidades!==undefined){if(out.unidades===''||!Number.isInteger(Number(out.unidades))||Number(out.unidades)<0||Number(out.unidades)>100000)throw Error('Quantidade de unidades inválida');out.unidades=Number(out.unidades)}
+ if(out.regiao!==undefined&&(typeof out.regiao!=='string'||out.regiao.length>120))throw Error('Região inválida');
+ if(out.equipamentos!==undefined){if(typeof out.equipamentos==='string')out.equipamentos=out.equipamentos.split(',').map(x=>x.trim()).filter(Boolean);if(!Array.isArray(out.equipamentos)||out.equipamentos.length>30||out.equipamentos.some(x=>typeof x!=='string'||x.length>100))throw Error('Equipamentos inválidos')}
  if(out.classe!==undefined&&!['A','B','C','D'].includes(out.classe))throw Error('Classe inválida');
  if(out.tipo!==undefined&&!['Receita','Despesa'].includes(out.tipo))throw Error('Tipo inválido');
  if(out.valor!==undefined){if(out.valor===''||!Number.isFinite(Number(out.valor))||Number(out.valor)<0||Number(out.valor)>1000000000)throw Error('Valor inválido');out.valor=Number(out.valor)}
