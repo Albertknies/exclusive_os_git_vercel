@@ -3,6 +3,7 @@ const ROLES_ADMIN=new Set(['Master','Gerente','Administrativo']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONFIG={
  condominios:{table:'os_condominios',fields:['nome','sindico','classe','status'],select:'id,codigo,nome,sindico,classe,status,updated_at'},
+ financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
  tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
  chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
  processos:{table:'os_processos',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
@@ -17,8 +18,11 @@ function clean(entity,body){
  for(const k of ['descricao','observacoes'])if(out[k]!==undefined&&(typeof out[k]!=='string'||out[k].length>10000))throw Error('Texto excede limite');
  if(out.sindico!==undefined&&(typeof out.sindico!=='string'||out.sindico.length>150))throw Error('Síndico inválido');
  if(out.classe!==undefined&&!['A','B','C','D'].includes(out.classe))throw Error('Classe inválida');
+ if(out.tipo!==undefined&&!['Receita','Despesa'].includes(out.tipo))throw Error('Tipo inválido');
+ if(out.valor!==undefined){if(out.valor===''||!Number.isFinite(Number(out.valor))||Number(out.valor)<0||Number(out.valor)>1000000000)throw Error('Valor inválido');out.valor=Number(out.valor)}
+ if(out.vencimento!==undefined&&(!/^\\d{4}-\\d{2}-\\d{2}$/.test(out.vencimento)||Number.isNaN(Date.parse(out.vencimento))))throw Error('Vencimento inválido');
  if(out.prioridade!==undefined&&!['Baixa','Normal','Alta','Urgente'].includes(out.prioridade))throw Error('Prioridade inválida');
- if(out.status!==undefined&&!({condominios:['Ativo','Inativo'],processos:['Aberto','Em andamento','Concluído','Cancelado'],chamados:['Aberto','Em andamento','Concluído','Cancelado'],tarefas:['Aberto','Em andamento','Concluído','Cancelado'],vistorias:['Pendente','Em andamento','Concluída']}[entity].includes(out.status)))throw Error('Status inválido');
+ if(out.status!==undefined&&!({condominios:['Ativo','Inativo'],processos:['Aberto','Em andamento','Concluído','Cancelado'],chamados:['Aberto','Em andamento','Concluído','Cancelado'],tarefas:['Aberto','Em andamento','Concluído','Cancelado'],financeiro:['Pendente','Pago','Cancelado'],vistorias:['Pendente','Em andamento','Concluída']}[entity].includes(out.status)))throw Error('Status inválido');
  for(const k of ['condominio_id','responsavel_id'])if(out[k]!==undefined&&out[k]!==null&&!UUID.test(out[k]))throw Error('Identificador inválido');
  if(out.data_vistoria!==undefined&&(!/^\d{4}-\d{2}-\d{2}$/.test(out.data_vistoria)||Number.isNaN(Date.parse(out.data_vistoria))))throw Error('Data inválida');
  return out;
@@ -58,6 +62,7 @@ module.exports=async function(req,res){
    if(entity!=='condominios'&&(!b.condominio_id||!await allowed(client,actor,b.condominio_id)))return error(res,403,'Condomínio não autorizado');
    if(entity==='condominios'&&!b.nome)return error(res,400,'Informe o nome');
    if(entity!=='condominios'&&!b.titulo)return error(res,400,'Informe o título');
+   if(entity==='financeiro'&&!b.vencimento)return error(res,400,'Informe o vencimento');
    if(entity==='vistorias'&&!b.data_vistoria)return error(res,400,'Informe a data');
    if(entity!=='condominios')b.created_by=actor.id;
    const {data,error:e}=await client.from(cfg.table).insert(b).select(cfg.select).single();if(e){if(e.code==='23503')return error(res,400,'Condomínio ou responsável não encontrado');throw e;}
