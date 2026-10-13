@@ -56,7 +56,7 @@ module.exports=async function(req,res){
    }
    const {data,error:e}=await q;if(e)throw e;return res.status(200).json({items:data||[]});
   }
-  if(!ROLES_ADMIN.has(actor.perfil)&&entity==='condominios')return error(res,403,'Sem permissão para alterar condomínios');
+  if(!ROLES_ADMIN.has(actor.perfil)&&['condominios','financeiro'].includes(entity))return error(res,403,'Sem permissão para alterar este módulo');
   if(method==='POST'){
    const b=clean(entity,req.body||{});
    if(entity!=='condominios'&&(!b.condominio_id||!await allowed(client,actor,b.condominio_id)))return error(res,403,'Condomínio não autorizado');
