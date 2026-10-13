@@ -20,7 +20,7 @@ function clean(entity,body){
  if(out.classe!==undefined&&!['A','B','C','D'].includes(out.classe))throw Error('Classe inválida');
  if(out.tipo!==undefined&&!['Receita','Despesa'].includes(out.tipo))throw Error('Tipo inválido');
  if(out.valor!==undefined){if(out.valor===''||!Number.isFinite(Number(out.valor))||Number(out.valor)<0||Number(out.valor)>1000000000)throw Error('Valor inválido');out.valor=Number(out.valor)}
- if(out.vencimento!==undefined&&(!/^\\d{4}-\\d{2}-\\d{2}$/.test(out.vencimento)||Number.isNaN(Date.parse(out.vencimento))))throw Error('Vencimento inválido');
+ if(out.vencimento!==undefined&&(!/^\d{4}-\d{2}-\d{2}$/.test(out.vencimento)||Number.isNaN(Date.parse(out.vencimento))))throw Error('Vencimento inválido');
  if(out.prioridade!==undefined&&!['Baixa','Normal','Alta','Urgente'].includes(out.prioridade))throw Error('Prioridade inválida');
  if(out.status!==undefined&&!({condominios:['Ativo','Inativo'],processos:['Aberto','Em andamento','Concluído','Cancelado'],chamados:['Aberto','Em andamento','Concluído','Cancelado'],tarefas:['Aberto','Em andamento','Concluído','Cancelado'],financeiro:['Pendente','Pago','Cancelado'],vistorias:['Pendente','Em andamento','Concluída']}[entity].includes(out.status)))throw Error('Status inválido');
  for(const k of ['condominio_id','responsavel_id'])if(out[k]!==undefined&&out[k]!==null&&!UUID.test(out[k]))throw Error('Identificador inválido');
