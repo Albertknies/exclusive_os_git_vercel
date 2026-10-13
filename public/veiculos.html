@@ -1,0 +1,37 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exclusive OS · Gestão de Veículos</title><style>
+:root{font-family:system-ui;color:#27283e;background:#f5f4f1}*{box-sizing:border-box}body{margin:0}header{background:#232345;color:#fff;padding:20px 4%;display:flex;justify-content:space-between}header a{color:#e4c483}main{max-width:1200px;margin:25px auto;padding:0 18px}.card{background:white;border:1px solid #e8e5df;border-radius:14px;padding:22px;margin-bottom:18px}h1{font-size:22px;margin:0}h2{font-size:18px}label{display:block;font-size:13px;font-weight:600}input,select,textarea{display:block;width:100%;padding:11px;border:1px solid #c8c8d2;border-radius:8px;margin:6px 0;font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}button{background:#302f61;color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:700}.gold{background:#98773d}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;min-width:850px}th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;font-size:13px}[hidden]{display:none!important}#notice{margin:12px 0;color:#9a2d2d}</style></head><body>
+<header><div><h1>EXCLUSIVE SÍNDICOS · Veículos</h1><small>Controle de utilização da frota</small></div><a href="/operacional.html">Voltar ao operacional</a></header><main>
+<div id="notice" role="status"></div>
+<section class="card"><h2>Registrar retirada</h2><form id="usoForm"><div class="grid">
+<label>Veículo<select name="veiculo_id" id="veiculo" required></select></label>
+<label id="sindicoWrap" hidden>Síndico responsável<select name="sindico_id" id="sindico"></select></label>
+<label>Data/hora da retirada<input name="inicio" type="datetime-local" required></label>
+<label>KM inicial<input name="km_inicial" type="number" min="0" step=".1" required></label>
+<label>Destino<input name="destino" maxlength="200" required></label>
+<label>Finalidade<input name="finalidade" maxlength="500" required></label>
+<label>Observações<textarea name="observacoes" maxlength="2000"></textarea></label></div><p><button>Registrar retirada</button></p></form></section>
+<section class="card" id="cadastro" hidden><h2>Cadastrar veículo</h2><form id="veiculoForm"><div class="grid">
+<label>Placa<input name="placa" maxlength="8" required></label><label>Modelo<input name="modelo" required></label><label>Marca<input name="marca"></label><label>Identificação interna<input name="identificacao"></label></div><p><button>Cadastrar veículo</button></p></form></section>
+<section class="card"><h2>Histórico e relatórios</h2><div class="grid">
+<label>Veículo<select id="filtroVeiculo"></select></label><label id="filtroSindicoWrap" hidden>Síndico<select id="filtroSindico"></select></label></div>
+<p><button id="atualizar">Atualizar</button> <button id="csv" class="gold">Exportar CSV</button></p>
+<div class="scroll"><table><thead><tr><th>Placa</th><th>Síndico</th><th>Retirada</th><th>Devolução</th><th>KM inicial</th><th>KM final</th><th>Destino</th><th>Finalidade</th><th>Ação</th></tr></thead><tbody id="rows"></tbody></table></div></section></main>
+<script>
+const $=id=>document.getElementById(id);let vehicles=[],sindicos=[],usos=[],admin=false;
+const notify=x=>$('notice').textContent=x;
+async function api(action,method='GET',body){const r=await fetch('/api/veiculos?action='+encodeURIComponent(action),{method,credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'Falha na requisição');return data}
+function opts(el,items,all=false){el.replaceChildren();if(all)el.add(new Option('Todos',''));for(const i of items)el.add(new Option(i.label,i.id))}
+const plate=id=>vehicles.find(x=>x.id===id)?.placa||'—';
+const name=id=>sindicos.find(x=>x.id===id)?.nome||'Meu registro';
+const date=x=>x?new Date(x).toLocaleString('pt-BR'):'—';
+async function init(){try{vehicles=(await api('veiculos')).items;const list=vehicles.map(v=>({id:v.id,label:v.placa+' · '+v.modelo}));opts($('veiculo'),list);opts($('filtroVeiculo'),list,true);
+try{sindicos=(await api('sindicos')).items;admin=true;$('sindicoWrap').hidden=false;$('filtroSindicoWrap').hidden=false;$('cadastro').hidden=false;const a=sindicos.map(s=>({id:s.id,label:s.nome}));opts($('sindico'),a);opts($('filtroSindico'),a,true)}catch(e){if(e.message!=='Sem permissão')throw e}
+await load()}catch(e){notify(e.message+' — entre em /admin.html')}}
+async function load(){try{const v=$('filtroVeiculo').value,s=$('filtroSindico').value;let url='/api/veiculos?action=usos'+(v?'&veiculo_id='+encodeURIComponent(v):'')+(admin&&s?'&sindico_id='+encodeURIComponent(s):'');const r=await fetch(url,{credentials:'same-origin'}),d=await r.json();if(!r.ok)throw Error(d.error);usos=d.items||[];const rows=$('rows');rows.replaceChildren();for(const u of usos){const tr=document.createElement('tr');for(const value of [plate(u.veiculo_id),name(u.sindico_id),date(u.inicio),date(u.fim),u.km_inicial,u.km_final??'—',u.destino,u.finalidade]){const td=document.createElement('td');td.textContent=value;tr.append(td)}const td=document.createElement('td');if(!u.fim){const b=document.createElement('button');b.textContent='Devolver';b.onclick=()=>devolver(u);td.append(b)}tr.append(td);rows.append(tr)}}catch(e){notify(e.message)}}
+async function devolver(u){const km=prompt('KM final:');if(km===null)return;try{await api('devolucao','PATCH',{id:u.id,km_final:Number(km),fim:new Date().toISOString()});notify('Devolução registrada');await load()}catch(e){notify(e.message)}}
+$('usoForm').onsubmit=async e=>{e.preventDefault();try{const b=Object.fromEntries(new FormData(e.target));b.inicio=new Date(b.inicio).toISOString();b.km_inicial=Number(b.km_inicial);await api('uso','POST',b);notify('Retirada registrada');e.target.reset();await load()}catch(err){notify(err.message)}};
+$('veiculoForm').onsubmit=async e=>{e.preventDefault();try{await api('veiculo','POST',Object.fromEntries(new FormData(e.target)));notify('Veículo cadastrado');e.target.reset();await init()}catch(err){notify(err.message)}};
+$('atualizar').onclick=load;
+$('csv').onclick=()=>{const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const data=[['Placa','Síndico','Retirada','Devolução','KM inicial','KM final','Destino','Finalidade'],...usos.map(u=>[plate(u.veiculo_id),name(u.sindico_id),date(u.inicio),date(u.fim),u.km_inicial,u.km_final,u.destino,u.finalidade])];const blob=new Blob(['\uFEFF'+data.map(row=>row.map(esc).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='exclusive-os-veiculos.csv';a.click();URL.revokeObjectURL(a.href)};
+init();
+</script></body></html>
