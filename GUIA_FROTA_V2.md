@@ -47,3 +47,15 @@ Se houver erro de serviço indisponível, verifique o SQL, Storage e as variáve
 - scripts/server.js
 - supabase/migrations/20261016_frota_tanque_cheio.sql
 - GUIA_FROTA_V2.md
+
+## Layout e navegação V2.1
+
+- Painel operacional: destaque para a frota, hierarquia visual revisada e menu mais legível no celular.
+- Frota: abertura com ações rápidas **Nova retirada** e **Ver devoluções**.
+- Jornada guiada em três etapas: retirar com tanque cheio, utilizar e devolver abastecido.
+- Devoluções pendentes apresentadas em cartões, com placa, responsável, KM inicial e ação direta.
+- Formulários com dicas, mensagens de validação, indicadores e prévia do consumo.
+- Relatórios, manutenção e cadastro separados por abas com melhor contraste.
+- A interface continua utilizando as APIs e permissões existentes; nenhuma mudança de dados é necessária além da migração da frota.
+
+A revisão visual foi verificada quanto à sintaxe dos scripts e ausência de IDs HTML duplicados. Ainda é necessário fazer teste funcional em navegador com contas autorizadas e banco de homologação.
