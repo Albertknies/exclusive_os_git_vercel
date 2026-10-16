@@ -38,8 +38,15 @@ function showTab(tab){
  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
  for(const id of ['retiradas','relatorios','manutencoes','cadastro'])$(id).hidden=id!==tab;
  if(tab==='manutencoes')loadMaintenance();
+ document.title='Exclusive OS · '+({retiradas:'Retiradas e devoluções',relatorios:'Relatórios',manutencoes:'Manutenções',cadastro:'Cadastro de veículos'}[tab]||'Frota');
 }
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+document.querySelectorAll('[data-quick]').forEach(b=>b.addEventListener('click',()=>{
+ showTab('retiradas');
+ const id=b.dataset.quick==='pendentes'?'pendentesCard':'retiradaCard';
+ $(id).scrollIntoView({behavior:'smooth',block:'start'});
+}));
+
 function currentFilters(){
  return usos.filter(u=>{
   const a=$('filtroInicio').value,z=$('filtroFim').value;
@@ -58,12 +65,19 @@ function metrics(){
 function renderPending(){
  const target=$('pendentes');target.replaceChildren();
  const open=usos.filter(u=>!u.fim);
- if(!open.length){target.textContent='Nenhuma devolução pendente.';return}
+ $('badgePendentes').textContent=open.length+' '+(open.length===1?'pendência':'pendências');
+ if(!open.length){
+  const empty=document.createElement('div');empty.className='empty-state';
+  const title=document.createElement('strong');title.textContent='Tudo em dia por aqui!';
+  empty.append(title,document.createTextNode('Não há devoluções pendentes para este acesso.'));target.append(empty);return;
+ }
  for(const u of open){
-  const p=document.createElement('p');p.className='highlight';
+  const card=document.createElement('div');card.className='pending-item';
+  const info=document.createElement('div');
   const strong=document.createElement('strong');strong.textContent=plate(u.veiculo_id)+' · '+name(u.sindico_id);
-  p.append(strong,document.createTextNode(' — '+number(u.km_inicial)+' km, retirada em '+date(u.inicio)+' · '));
-  p.append(button('Devolver',()=>openReturn(u)));target.append(p);
+  const detail=document.createElement('small');detail.textContent='Saída: '+date(u.inicio)+' · '+number(u.km_inicial)+' km';
+  const destination=document.createElement('small');destination.textContent='Destino: '+(u.destino||'Não informado');
+  info.append(strong,detail,destination);card.append(info,button('Devolver →',()=>openReturn(u)));target.append(card);
  }
 }
 function renderReports(){
