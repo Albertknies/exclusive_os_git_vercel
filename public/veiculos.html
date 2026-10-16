@@ -16,9 +16,54 @@ input[type=checkbox]{display:inline;width:auto;margin:0 7px 0 0;accent-color:#34
 .summary{background:#f7f6f2;border-radius:9px;padding:13px;margin:10px 0}.check{display:flex;align-items:center;gap:5px;margin:10px 0}
 .actions{display:flex;gap:9px;flex-wrap:wrap}.highlight{border-left:4px solid #98773d;padding-left:12px}
 @media(max-width:650px){header h1{font-size:17px}.grid{grid-template-columns:1fr}.card{padding:15px}}
+
+
+/* Exclusive OS — camada visual intuitiva V2.1 */
+:root{--brand:#343568;--brand-dark:#222348;--gold:#98773d;--ink:#272943;--line:#e6e5ed;--soft:#f8f7fb;--good:#14734b;--warn:#a96013}
+html{scroll-behavior:smooth}body{background:linear-gradient(180deg,#f0eff7 0,#f7f6f2 300px);line-height:1.45}
+button,input,select,textarea{font-family:inherit}button{min-height:43px;transition:transform .15s,background .15s,box-shadow .15s}
+button:hover{transform:translateY(-1px)}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #bd9b5d;outline-offset:2px}
+header{position:relative;box-shadow:0 9px 30px #29295117;min-height:85px}header a{font-size:13px;text-decoration:none;border:1px solid #ffffff50;padding:10px 14px;border-radius:10px}
+main{margin:0 auto;padding-top:24px}.hero{display:flex;justify-content:space-between;align-items:center;gap:18px;background:linear-gradient(110deg,#292b5a,#454675);color:#fff;border-radius:18px;padding:26px 30px;margin-bottom:20px;box-shadow:0 12px 28px #34356825}
+.hero h2{font-size:27px;letter-spacing:-.6px;margin:4px 0 8px}.hero p{color:#e3e3ef;margin:0;max-width:640px;font-size:14px}
+.eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:800;color:#e5c995}
+.hero-actions{display:flex;gap:9px;flex-wrap:wrap}.hero-actions button{white-space:nowrap;background:#fff;color:var(--brand-dark);box-shadow:0 4px 10px #00000015}.hero-actions button.primary{background:#d7b36d;color:#262744}
+.quick-guide{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 22px}
+.guide-step{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1px solid var(--line);border-radius:13px;padding:15px 16px;min-width:0}
+.guide-number{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;background:#eeebf8;border-radius:9px;color:var(--brand);font-size:14px;font-weight:850}
+.guide-step b{display:block;font-size:13px;margin-bottom:3px}.guide-step span{font-size:12px;color:#74768a}
+.card{border:1px solid #e5e4ed;box-shadow:0 5px 24px #2e2f5610;border-radius:16px}.card h2{letter-spacing:-.3px}
+.stat{border:1px solid #e6e4ec;box-shadow:0 3px 12px #29295109;border-left:3px solid #b89a5e;min-height:108px}.stat b{font-size:26px;letter-spacing:-.8px}.stat span{font-weight:650}
+.tabs{position:sticky;top:0;z-index:5;background:#f7f6f2eF;backdrop-filter:blur(12px);padding:11px 0;margin:0 0 12px;border-bottom:1px solid #e8e5ec;overflow-x:auto;flex-wrap:nowrap}
+.tabs button{white-space:nowrap;background:transparent;border:1px solid transparent;font-size:13px;padding:11px 16px;color:#555771}
+.tabs button.active{background:#343568;color:white;box-shadow:0 5px 12px #34356824}.tabs button:hover:not(.active){background:#ebeaf3}
+.section-kicker{font-size:11px;color:#8c713e;letter-spacing:1px;text-transform:uppercase;font-weight:850;display:block;margin-bottom:6px}
+.section-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}.section-head h2{margin-bottom:3px}.section-head p{margin:0}
+.pill{font-size:11px;display:inline-flex;align-items:center;gap:6px;border-radius:20px;background:#eef6f0;color:#216343;padding:7px 10px;font-weight:800;white-space:nowrap}
+input,select,textarea{min-height:44px;border:1px solid #cfd0dd;background:#fdfdff;transition:border-color .2s,box-shadow .2s}
+input:hover,select:hover,textarea:hover{border-color:#8586aa}label{color:#42445d}label small{display:block;color:#77798b;font-size:11px;font-weight:400;margin-top:2px}
+.check{padding:12px;background:#f1f7f2;border:1px solid #d7eadc;border-radius:9px;font-size:13px;color:#245f3e}
+input[type=file]{padding:9px;background:#f7f6fa;border-style:dashed;cursor:pointer}
+.summary{background:#f0eff7;color:#353665;font-size:13px;font-weight:650;border:1px solid #e3e1f0}
+#pendentes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.pending-item{background:#faf9fd;border:1px solid #e6e4f1;border-radius:12px;padding:15px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pending-item strong{display:block;color:#282a51;font-size:14px;margin-bottom:4px}.pending-item small{display:block;color:#717388;font-size:12px;line-height:1.5}
+.pending-item button{background:#98773d;white-space:nowrap;min-height:38px}
+.empty-state{text-align:center;background:#f8f7fb;border:1px dashed #cbc9dc;border-radius:12px;padding:24px;color:#6e7086;font-size:13px}
+.empty-state strong{display:block;color:#343568;margin-bottom:6px}
+#devolucaoCard{border-top:4px solid #98773d;scroll-margin-top:95px}
+.notice{border:1px solid #ddd8ed;box-shadow:0 3px 10px #34356810;position:relative}
+.scroll{border:1px solid #eeecf1;border-radius:10px}table th{background:#f7f6fa;white-space:nowrap;text-transform:uppercase;letter-spacing:.4px;font-size:10px}table tbody tr:hover{background:#f8f7fc}
+.actions{align-items:center}button[type=submit]{background:#343568;min-height:46px;padding:12px 20px}
+.form-tip{margin-top:11px;font-size:12px;color:#6c6f85;background:#faf9f4;padding:11px;border-left:3px solid #ba985c;border-radius:0 8px 8px 0}
+.privacy-note{font-size:12px;color:#73758b;display:flex;gap:8px;align-items:center;margin-top:12px}
+@media(max-width:850px){.hero{align-items:flex-start;flex-direction:column}.quick-guide{grid-template-columns:1fr 1fr}.hero h2{font-size:24px}}
+@media(max-width:620px){header{padding:17px}header h1{font-size:18px}main{padding:14px 12px 45px}.hero{padding:20px;border-radius:14px}.hero h2{font-size:22px}.hero-actions{width:100%}.hero-actions button{flex:1}.quick-guide{grid-template-columns:1fr;gap:8px}.guide-step{padding:11px 13px}.stat{min-height:92px;padding:13px}.stat b{font-size:23px}.tabs button{font-size:12px;padding:10px 12px}.section-head{flex-wrap:wrap}#pendentes{grid-template-columns:1fr}.pending-item{flex-wrap:wrap}.pending-item button{width:100%}button[type=submit]{width:100%}.actions button{flex:1}}
 </style></head><body>
 <header><div><h1>EXCLUSIVE <span style="color:#d5b576">SÍNDICOS</span> · Frota</h1><small>Controle de veículos, consumo e manutenção</small></div><a href="/operacional.html">← Voltar ao operacional</a></header>
 <main>
+<section class="hero" aria-labelledby="heroTitle"><div><span class="eyebrow">Exclusive OS / Gestão de frota</span><h2 id="heroTitle">Tudo sobre os veículos em um só lugar.</h2><p>Registre a saída, confira o abastecimento na volta e acompanhe custos e revisões sem planilhas.</p></div><div class="hero-actions"><button type="button" class="primary" data-quick="retirada">+ Nova retirada</button><button type="button" data-quick="pendentes">Ver devoluções</button></div></section>
+<div class="quick-guide" aria-label="Como funciona"><div class="guide-step"><div class="guide-number">1</div><div><b>Retire com tanque cheio</b><span>Informe o KM inicial e fotografe o painel.</span></div></div><div class="guide-step"><div class="guide-number">2</div><div><b>Use o veículo</b><span>O sistema acompanha quem está com cada carro.</span></div></div><div class="guide-step"><div class="guide-number">3</div><div><b>Devolva e abasteça</b><span>Informe o KM final, litros, valor e comprovante.</span></div></div></div>
 <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
 <div class="grid" style="margin-bottom:18px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
 <div class="stat"><span>Veículos cadastrados</span><b id="kVeiculos">—</b></div>
@@ -34,7 +79,7 @@ input[type=checkbox]{display:inline;width:auto;margin:0 7px 0 0;accent-color:#34
 <button data-tab="cadastro" id="tabCadastro" hidden>Cadastro</button>
 </nav>
 <section id="retiradas">
-<div class="card"><h2>Registrar retirada</h2><p class="muted">O veículo deve ser retirado com tanque cheio. Tire uma foto legível do painel mostrando a quilometragem.</p>
+<div class="card" id="retiradaCard"><div class="section-head"><div><span class="section-kicker">Etapa 01 · Saída</span><h2>Registrar retirada</h2><p class="muted">Escolha o veículo, confirme o tanque cheio e fotografe o painel.</p></div><span class="pill">● Tanque cheio obrigatório</span></div>
 <form id="usoForm"><div class="grid">
 <label>Veículo<select name="veiculo_id" id="veiculo" required></select></label>
 <label id="sindicoWrap" hidden>Síndico responsável<select name="sindico_id" id="sindico"></select></label>
@@ -45,9 +90,9 @@ input[type=checkbox]{display:inline;width:auto;margin:0 7px 0 0;accent-color:#34
 <label>Foto do painel na retirada (obrigatória)<input name="foto_painel_retirada" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>
 <label>Observações<textarea name="observacoes" maxlength="2000"></textarea></label>
 </div><label class="check"><input name="combustivel_retirada" type="checkbox" required>Confirmo que o tanque está cheio na retirada</label>
-<button type="submit">Registrar retirada</button></form></div>
-<div class="card"><h2>Devoluções pendentes</h2><div id="pendentes" class="muted">Carregando...</div></div>
-<div class="card" id="devolucaoCard" hidden><h2>Finalizar devolução <span id="devolucaoPlaca"></span></h2>
+<button type="submit">Confirmar retirada →</button><div class="form-tip">Dica: confira se a quilometragem digitada é exatamente a mesma da foto do painel.</div></form></div>
+<div class="card" id="pendentesCard"><div class="section-head"><div><span class="section-kicker">Etapa 02 · Retorno</span><h2>Devoluções pendentes</h2><p class="muted">Veículos que ainda precisam ser entregues e conferidos.</p></div><span class="badge" id="badgePendentes">Aguardando</span></div><div id="pendentes" class="muted">Carregando...</div></div>
+<div class="card" id="devolucaoCard" hidden><span class="section-kicker">Etapa 03 · Conferência final</span><h2>Finalizar devolução <span id="devolucaoPlaca"></span></h2>
 <p class="muted">Preencha a quilometragem final, os dados do abastecimento e fotografe o painel e o comprovante. O consumo só é calculado quando ambos os tanques estão cheios.</p>
 <form id="devolucaoForm"><input name="id" id="devolucaoId" type="hidden">
 <div class="grid">
@@ -61,11 +106,11 @@ input[type=checkbox]{display:inline;width:auto;margin:0 7px 0 0;accent-color:#34
 <label>Condição do tanque<select name="combustivel_devolucao" id="tanqueDevolucao"><option value="cheio">Tanque cheio</option><option value="incompleto">Exceção: não foi possível completar</option></select></label>
 </div>
 <label id="justificativaWrap" hidden>Justificativa obrigatória da exceção<textarea name="justificativa_excecao" maxlength="1000" placeholder="Explique por que o veículo não voltou com tanque cheio"></textarea></label>
-<div class="summary" id="previewDevolucao">Informe o KM final e os litros para pré-visualizar o consumo.</div>
-<div class="actions"><button type="submit">Confirmar devolução</button><button type="button" class="light" id="cancelarDevolucao">Cancelar</button></div></form></div>
+<div class="summary" id="previewDevolucao" aria-live="polite">Informe o KM final e os litros para pré-visualizar o consumo.</div>
+<div class="actions"><button type="submit">Concluir devolução e calcular consumo →</button><button type="button" class="light" id="cancelarDevolucao">Cancelar</button></div><div class="privacy-note">🔒 Fotos e comprovantes são armazenados em área privada e acessados por pessoas autorizadas.</div></form></div>
 </section>
 <section id="relatorios" hidden>
-<div class="card"><h2>Histórico e indicadores</h2><div class="grid">
+<div class="card"><span class="section-kicker">Análise e acompanhamento</span><h2>Histórico e indicadores</h2><div class="grid">
 <label>Veículo<select id="filtroVeiculo"></select></label><label id="filtroSindicoWrap" hidden>Síndico<select id="filtroSindico"></select></label>
 <label>De<input id="filtroInicio" type="date"></label><label>Até<input id="filtroFim" type="date"></label></div>
 <p class="actions"><button id="atualizar">Atualizar</button><button id="csv" class="gold">Exportar CSV</button></p>
@@ -74,7 +119,7 @@ input[type=checkbox]{display:inline;width:auto;margin:0 7px 0 0;accent-color:#34
 <div class="scroll"><table style="min-width:650px"><thead><tr><th>Síndico</th><th>Viagens</th><th>KM rodados</th><th>Litros válidos</th><th>Média km/L</th><th>Custo total</th></tr></thead><tbody id="resumoSindicos"></tbody></table></div></div>
 </section>
 <section id="manutencoes" hidden>
-<div class="card"><h2>Alertas de manutenção por KM</h2><p class="muted">O alerta fica próximo quando faltam até 500 km para a revisão; ao ultrapassar o limite, fica vencido.</p>
+<div class="card"><span class="section-kicker">Saúde da frota</span><h2>Alertas de manutenção por KM</h2><p class="muted">O alerta fica próximo quando faltam até 500 km para a revisão; ao ultrapassar o limite, fica vencido.</p>
 <div class="scroll"><table style="min-width:680px"><thead><tr><th>Veículo</th><th>Serviço</th><th>KM atual</th><th>Próximo serviço</th><th>Restam</th><th>Situação</th></tr></thead><tbody id="alertas"></tbody></table></div></div>
 <div class="card"><h2>Registrar manutenção realizada</h2><form id="manutencaoForm"><div class="grid">
 <label>Veículo<select name="veiculo_id" id="manutencaoVeiculo" required></select></label>
