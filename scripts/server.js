@@ -20,6 +20,7 @@ const server=http.createServer(async(req,res)=>{
    try{for await(const chunk of req){body+=chunk;if(body.length>3900000)throw Error('Payload excede 3,9 MB')}}catch(e){res.writeHead(413);return res.end(e.message)}
   }
   try{
+   req.headers['x-forwarded-proto']='http';
    req.query=Object.fromEntries(url.searchParams);
    req.body=body?JSON.parse(body):{};
    res.status=function(code){res.statusCode=code;return res};
