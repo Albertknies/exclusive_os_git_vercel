@@ -30,7 +30,7 @@ module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  if(!['GET','POST','PATCH'].includes(req.method))return fail(res,405,'Método não permitido');
  if(req.method!=='GET'){
-  const origin=req.headers.origin,host=req.headers['x-forwarded-host']||req.headers.host,proto=req.headers['x-forwarded-proto']||'https';
+  const origin=req.headers.origin,host=req.headers['x-forwarded-host']||req.headers.host,proto=req.headers['x-forwarded-proto']||(/^((localhost|127\.0\.0\.1)(:\d+)?$)/.test(host||'')?'http':'https');
   if(origin&&origin!==proto+'://'+host)return fail(res,403,'Origem não autorizada');
   if(!String(req.headers['content-type']||'').startsWith('application/json'))return fail(res,415,'JSON obrigatório');
  }
