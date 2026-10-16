@@ -1,37 +1,89 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exclusive OS · Gestão de Veículos</title><style>
-:root{font-family:system-ui;color:#27283e;background:#f5f4f1}*{box-sizing:border-box}body{margin:0}header{background:#232345;color:#fff;padding:20px 4%;display:flex;justify-content:space-between}header a{color:#e4c483}main{max-width:1200px;margin:25px auto;padding:0 18px}.card{background:white;border:1px solid #e8e5df;border-radius:14px;padding:22px;margin-bottom:18px}h1{font-size:22px;margin:0}h2{font-size:18px}label{display:block;font-size:13px;font-weight:600}input,select,textarea{display:block;width:100%;padding:11px;border:1px solid #c8c8d2;border-radius:8px;margin:6px 0;font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}button{background:#302f61;color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:700}.gold{background:#98773d}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;min-width:850px}th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;font-size:13px}[hidden]{display:none!important}#notice{margin:12px 0;color:#9a2d2d}</style></head><body>
-<header><div><h1>EXCLUSIVE SÍNDICOS · Veículos</h1><small>Controle de utilização da frota</small></div><a href="/operacional.html">Voltar ao operacional</a></header><main>
-<div id="notice" role="status"></div>
-<section class="card"><h2>Registrar retirada</h2><form id="usoForm"><div class="grid">
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Exclusive OS · Frota inteligente</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,sans-serif;color:#282941;background:#f7f6f2}*{box-sizing:border-box}body{margin:0}
+header{background:#343568;color:white;padding:20px clamp(16px,4vw,52px);display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:21px;letter-spacing:.04em;margin:0}header small{color:#e3cfaa}header a{color:#e3cfaa}
+main{max-width:1260px;margin:24px auto;padding:0 16px 50px}.card{background:white;border:1px solid #e7e4dc;border-radius:14px;padding:clamp(15px,2vw,23px);margin-bottom:18px;box-shadow:0 2px 10px #34356808}
+h2{font-size:19px;margin:0 0 15px}h3{font-size:15px;margin:0 0 12px}p{line-height:1.5}.muted{color:#66697c;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px}
+label{display:block;font-size:13px;font-weight:650}input,select,textarea{display:block;width:100%;padding:11px;border:1px solid #c8c8d2;border-radius:8px;margin:6px 0;font:inherit;background:#fff;color:#282941}
+input[type=checkbox]{display:inline;width:auto;margin:0 7px 0 0;accent-color:#343568}input[type=file]{font-size:12px}button{background:#343568;color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font-weight:700}button:hover{filter:brightness(1.1)}button:disabled{opacity:.5;cursor:wait}.gold{background:#98773d}.light{background:#e9e7f2;color:#343568}.danger{color:#a32c28}.success{color:#226f46}
+.scroll{overflow:auto}table{border-collapse:collapse;width:100%;min-width:1000px}th,td{border-bottom:1px solid #eee;padding:10px;text-align:left;font-size:12px;vertical-align:top}th{color:#63647c}td button{font-size:12px;padding:7px 9px}
+[hidden]{display:none!important}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.tabs button{background:#e9e7f2;color:#343568}.tabs button.active{background:#343568;color:white}
+.stat{background:#fff;border:1px solid #e7e4dc;border-radius:12px;padding:18px}.stat b{font-size:25px;display:block;margin:6px 0}.stat span{font-size:12px;color:#66697c}
+.notice{border-radius:9px;padding:12px 15px;margin-bottom:15px;background:#eceaf6;color:#343568}.notice.error{background:#fff0ed;color:#9c2722}.badge{display:inline-block;border-radius:20px;background:#f0e8d8;padding:4px 8px;font-size:11px;font-weight:700}
+.summary{background:#f7f6f2;border-radius:9px;padding:13px;margin:10px 0}.check{display:flex;align-items:center;gap:5px;margin:10px 0}
+.actions{display:flex;gap:9px;flex-wrap:wrap}.highlight{border-left:4px solid #98773d;padding-left:12px}
+@media(max-width:650px){header h1{font-size:17px}.grid{grid-template-columns:1fr}.card{padding:15px}}
+</style></head><body>
+<header><div><h1>EXCLUSIVE <span style="color:#d5b576">SÍNDICOS</span> · Frota</h1><small>Controle de veículos, consumo e manutenção</small></div><a href="/operacional.html">← Voltar ao operacional</a></header>
+<main>
+<div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+<div class="grid" style="margin-bottom:18px;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+<div class="stat"><span>Veículos cadastrados</span><b id="kVeiculos">—</b></div>
+<div class="stat"><span>Retiradas em aberto</span><b id="kAbertos">—</b></div>
+<div class="stat"><span>KM rodados (filtro)</span><b id="kKm">—</b></div>
+<div class="stat"><span>Consumo médio válido</span><b id="kMedia">—</b></div>
+<div class="stat"><span>Combustível gasto</span><b id="kCusto">—</b></div>
+</div>
+<nav class="tabs" aria-label="Áreas da frota">
+<button class="active" data-tab="retiradas">Retiradas e devoluções</button>
+<button data-tab="relatorios">Relatórios</button>
+<button data-tab="manutencoes" id="tabManutencoes" hidden>Manutenções</button>
+<button data-tab="cadastro" id="tabCadastro" hidden>Cadastro</button>
+</nav>
+<section id="retiradas">
+<div class="card"><h2>Registrar retirada</h2><p class="muted">O veículo deve ser retirado com tanque cheio. Tire uma foto legível do painel mostrando a quilometragem.</p>
+<form id="usoForm"><div class="grid">
 <label>Veículo<select name="veiculo_id" id="veiculo" required></select></label>
 <label id="sindicoWrap" hidden>Síndico responsável<select name="sindico_id" id="sindico"></select></label>
-<label>Data/hora da retirada<input name="inicio" type="datetime-local" required></label>
-<label>KM inicial<input name="km_inicial" type="number" min="0" step=".1" required></label>
+<label>Data e hora da retirada<input name="inicio" type="datetime-local" required></label>
+<label>KM do painel na retirada<input name="km_inicial" type="number" min="0" step=".1" required></label>
 <label>Destino<input name="destino" maxlength="200" required></label>
 <label>Finalidade<input name="finalidade" maxlength="500" required></label>
-<label>Observações<textarea name="observacoes" maxlength="2000"></textarea></label></div><p><button>Registrar retirada</button></p></form></section>
-<section class="card" id="cadastro" hidden><h2>Cadastrar veículo</h2><form id="veiculoForm"><div class="grid">
-<label>Placa<input name="placa" maxlength="8" required></label><label>Modelo<input name="modelo" required></label><label>Marca<input name="marca"></label><label>Identificação interna<input name="identificacao"></label></div><p><button>Cadastrar veículo</button></p></form></section>
-<section class="card"><h2>Histórico e relatórios</h2><div class="grid">
-<label>Veículo<select id="filtroVeiculo"></select></label><label id="filtroSindicoWrap" hidden>Síndico<select id="filtroSindico"></select></label></div>
-<p><button id="atualizar">Atualizar</button> <button id="csv" class="gold">Exportar CSV</button></p>
-<div class="scroll"><table><thead><tr><th>Placa</th><th>Síndico</th><th>Retirada</th><th>Devolução</th><th>KM inicial</th><th>KM final</th><th>Destino</th><th>Finalidade</th><th>Ação</th></tr></thead><tbody id="rows"></tbody></table></div></section></main>
-<script>
-const $=id=>document.getElementById(id);let vehicles=[],sindicos=[],usos=[],admin=false;
-const notify=x=>$('notice').textContent=x;
-async function api(action,method='GET',body){const r=await fetch('/api/veiculos?action='+encodeURIComponent(action),{method,credentials:'same-origin',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined});const data=await r.json().catch(()=>({}));if(!r.ok)throw Error(data.error||'Falha na requisição');return data}
-function opts(el,items,all=false){el.replaceChildren();if(all)el.add(new Option('Todos',''));for(const i of items)el.add(new Option(i.label,i.id))}
-const plate=id=>vehicles.find(x=>x.id===id)?.placa||'—';
-const name=id=>sindicos.find(x=>x.id===id)?.nome||'Meu registro';
-const date=x=>x?new Date(x).toLocaleString('pt-BR'):'—';
-async function init(){try{vehicles=(await api('veiculos')).items;const list=vehicles.map(v=>({id:v.id,label:v.placa+' · '+v.modelo}));opts($('veiculo'),list);opts($('filtroVeiculo'),list,true);
-try{sindicos=(await api('sindicos')).items;admin=true;$('sindicoWrap').hidden=false;$('filtroSindicoWrap').hidden=false;$('cadastro').hidden=false;const a=sindicos.map(s=>({id:s.id,label:s.nome}));opts($('sindico'),a);opts($('filtroSindico'),a,true)}catch(e){if(e.message!=='Sem permissão')throw e}
-await load()}catch(e){notify(e.message+' — entre em /admin.html')}}
-async function load(){try{const v=$('filtroVeiculo').value,s=$('filtroSindico').value;let url='/api/veiculos?action=usos'+(v?'&veiculo_id='+encodeURIComponent(v):'')+(admin&&s?'&sindico_id='+encodeURIComponent(s):'');const r=await fetch(url,{credentials:'same-origin'}),d=await r.json();if(!r.ok)throw Error(d.error);usos=d.items||[];const rows=$('rows');rows.replaceChildren();for(const u of usos){const tr=document.createElement('tr');for(const value of [plate(u.veiculo_id),name(u.sindico_id),date(u.inicio),date(u.fim),u.km_inicial,u.km_final??'—',u.destino,u.finalidade]){const td=document.createElement('td');td.textContent=value;tr.append(td)}const td=document.createElement('td');if(!u.fim){const b=document.createElement('button');b.textContent='Devolver';b.onclick=()=>devolver(u);td.append(b)}tr.append(td);rows.append(tr)}}catch(e){notify(e.message)}}
-async function devolver(u){const km=prompt('KM final:');if(km===null)return;try{await api('devolucao','PATCH',{id:u.id,km_final:Number(km),fim:new Date().toISOString()});notify('Devolução registrada');await load()}catch(e){notify(e.message)}}
-$('usoForm').onsubmit=async e=>{e.preventDefault();try{const b=Object.fromEntries(new FormData(e.target));b.inicio=new Date(b.inicio).toISOString();b.km_inicial=Number(b.km_inicial);await api('uso','POST',b);notify('Retirada registrada');e.target.reset();await load()}catch(err){notify(err.message)}};
-$('veiculoForm').onsubmit=async e=>{e.preventDefault();try{await api('veiculo','POST',Object.fromEntries(new FormData(e.target)));notify('Veículo cadastrado');e.target.reset();await init()}catch(err){notify(err.message)}};
-$('atualizar').onclick=load;
-$('csv').onclick=()=>{const esc=v=>'"'+String(v??'').replace(/"/g,'""')+'"';const data=[['Placa','Síndico','Retirada','Devolução','KM inicial','KM final','Destino','Finalidade'],...usos.map(u=>[plate(u.veiculo_id),name(u.sindico_id),date(u.inicio),date(u.fim),u.km_inicial,u.km_final,u.destino,u.finalidade])];const blob=new Blob(['\uFEFF'+data.map(row=>row.map(esc).join(';')).join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='exclusive-os-veiculos.csv';a.click();URL.revokeObjectURL(a.href)};
-init();
-</script></body></html>
+<label>Foto do painel na retirada (obrigatória)<input name="foto_painel_retirada" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>
+<label>Observações<textarea name="observacoes" maxlength="2000"></textarea></label>
+</div><label class="check"><input name="combustivel_retirada" type="checkbox" required>Confirmo que o tanque está cheio na retirada</label>
+<button type="submit">Registrar retirada</button></form></div>
+<div class="card"><h2>Devoluções pendentes</h2><div id="pendentes" class="muted">Carregando...</div></div>
+<div class="card" id="devolucaoCard" hidden><h2>Finalizar devolução <span id="devolucaoPlaca"></span></h2>
+<p class="muted">Preencha a quilometragem final, os dados do abastecimento e fotografe o painel e o comprovante. O consumo só é calculado quando ambos os tanques estão cheios.</p>
+<form id="devolucaoForm"><input name="id" id="devolucaoId" type="hidden">
+<div class="grid">
+<label>Data e hora da devolução<input name="fim" type="datetime-local" required></label>
+<label>KM final<input name="km_final" type="number" min="0" step=".1" required></label>
+<label>Litros abastecidos<input name="litros_abastecidos" type="number" min="0" max="300" step=".01" required></label>
+<label>Valor total pago (R$)<input name="valor_abastecimento" type="number" min="0" max="10000" step=".01" required></label>
+<label>Posto de abastecimento<input name="posto_abastecimento" maxlength="120"></label>
+<label>Foto do painel na devolução<input name="foto_painel_devolucao" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required></label>
+<label>Foto do comprovante de abastecimento<input name="foto_comprovante" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"></label>
+<label>Condição do tanque<select name="combustivel_devolucao" id="tanqueDevolucao"><option value="cheio">Tanque cheio</option><option value="incompleto">Exceção: não foi possível completar</option></select></label>
+</div>
+<label id="justificativaWrap" hidden>Justificativa obrigatória da exceção<textarea name="justificativa_excecao" maxlength="1000" placeholder="Explique por que o veículo não voltou com tanque cheio"></textarea></label>
+<div class="summary" id="previewDevolucao">Informe o KM final e os litros para pré-visualizar o consumo.</div>
+<div class="actions"><button type="submit">Confirmar devolução</button><button type="button" class="light" id="cancelarDevolucao">Cancelar</button></div></form></div>
+</section>
+<section id="relatorios" hidden>
+<div class="card"><h2>Histórico e indicadores</h2><div class="grid">
+<label>Veículo<select id="filtroVeiculo"></select></label><label id="filtroSindicoWrap" hidden>Síndico<select id="filtroSindico"></select></label>
+<label>De<input id="filtroInicio" type="date"></label><label>Até<input id="filtroFim" type="date"></label></div>
+<p class="actions"><button id="atualizar">Atualizar</button><button id="csv" class="gold">Exportar CSV</button></p>
+<div class="scroll"><table><thead><tr><th>Placa</th><th>Síndico</th><th>Retirada</th><th>Devolução</th><th>KM inicial</th><th>KM final</th><th>Rodados</th><th>Litros</th><th>Valor</th><th>Média km/L</th><th>Tanque</th><th>Fotos</th><th>Destino</th></tr></thead><tbody id="rows"></tbody></table></div></div>
+<div class="card"><h2>Resumo por síndico</h2><p class="muted">A média é calculada por KM totais ÷ litros totais das viagens com tanque cheio na retirada e na devolução.</p>
+<div class="scroll"><table style="min-width:650px"><thead><tr><th>Síndico</th><th>Viagens</th><th>KM rodados</th><th>Litros válidos</th><th>Média km/L</th><th>Custo total</th></tr></thead><tbody id="resumoSindicos"></tbody></table></div></div>
+</section>
+<section id="manutencoes" hidden>
+<div class="card"><h2>Alertas de manutenção por KM</h2><p class="muted">O alerta fica próximo quando faltam até 500 km para a revisão; ao ultrapassar o limite, fica vencido.</p>
+<div class="scroll"><table style="min-width:680px"><thead><tr><th>Veículo</th><th>Serviço</th><th>KM atual</th><th>Próximo serviço</th><th>Restam</th><th>Situação</th></tr></thead><tbody id="alertas"></tbody></table></div></div>
+<div class="card"><h2>Registrar manutenção realizada</h2><form id="manutencaoForm"><div class="grid">
+<label>Veículo<select name="veiculo_id" id="manutencaoVeiculo" required></select></label>
+<label>Tipo de serviço<input name="tipo" placeholder="Ex.: Troca de óleo" maxlength="80" required></label>
+<label>KM do serviço<input name="km_servico" type="number" min="0" step=".1" required></label>
+<label>Intervalo até o próximo serviço (km)<input name="intervalo_km" type="number" min="100" max="100000" step="1" value="10000" required></label>
+<label>Observações<textarea name="observacoes" maxlength="1000"></textarea></label></div><p><button>Registrar manutenção</button></p></form></div>
+</section>
+<section id="cadastro" hidden><div class="card"><h2>Cadastrar veículo</h2><form id="veiculoForm"><div class="grid">
+<label>Placa<input name="placa" maxlength="8" required></label><label>Modelo<input name="modelo" required></label><label>Marca<input name="marca"></label><label>Identificação interna<input name="identificacao"></label>
+</div><p><button>Cadastrar veículo</button></p></form></div></section>
+</main><script src="/frota-v2.js" defer></script></body></html>
