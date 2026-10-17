@@ -12,10 +12,10 @@
   ['◇','Financeiro','/operacional.html#financeiro'],
   ['FROTA'],
   ['🚗','Visão da frota','/veiculos.html'],
-  ['↗','Retiradas','/veiculos.html#retirada'],
-  ['↙','Devoluções','/veiculos.html#pendentes'],
-  ['⛽','Abastecimentos','/veiculos.html#abastecimentos'],
-  ['⚒','Manutenção','/veiculos.html#manutencao'],
+  ['↗','Retiradas','/veiculos.html#retiradaCard'],
+  ['↙','Devoluções','/veiculos.html#devolucaoCard'],
+  ['⛽','Abastecimentos','/veiculos.html#relatorios'],
+  ['⚒','Manutenção','/veiculos.html#manutencoes'],
   ['ADMINISTRAÇÃO'],
   ['▥','Indicadores','/operacional.html#indicadores'],
   ['♧','Usuários e acessos','/admin.html']
@@ -45,9 +45,11 @@
  function routeHash(){
   const hash=decodeURIComponent(location.hash.slice(1));if(!hash)return;
   if(path==='/veiculos.html'){
-   const key=hash==='abastecimentos'?'abastecimentos':hash==='manutencao'?'manutencao':hash;
-   const btn=document.querySelector('.tabs [data-tab="'+key+'"],.tabs [data-target="'+key+'"]');
-   if(btn)btn.click();else{const target=document.getElementById(key);if(target)target.scrollIntoView()}
+   const tab=(hash==='relatorios')?'relatorios':(hash==='manutencoes')?'manutencoes':'retiradas';
+   const btn=document.querySelector('.tabs [data-tab="'+tab+'"]');
+   if(btn && !btn.hidden)btn.click();
+   const target=document.getElementById(hash);
+   if(target)setTimeout(()=>target.scrollIntoView({block:'start'}),80);
   }
  }
  window.addEventListener('hashchange',routeHash);
