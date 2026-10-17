@@ -59,7 +59,7 @@ input[type=file]{padding:9px;background:#f7f6fa;border-style:dashed;cursor:point
 .privacy-note{font-size:12px;color:#73758b;display:flex;gap:8px;align-items:center;margin-top:12px}
 @media(max-width:850px){.hero{align-items:flex-start;flex-direction:column}.quick-guide{grid-template-columns:1fr 1fr}.hero h2{font-size:24px}}
 @media(max-width:620px){header{padding:17px}header h1{font-size:18px}main{padding:14px 12px 45px}.hero{padding:20px;border-radius:14px}.hero h2{font-size:22px}.hero-actions{width:100%}.hero-actions button{flex:1}.quick-guide{grid-template-columns:1fr;gap:8px}.guide-step{padding:11px 13px}.stat{min-height:92px;padding:13px}.stat b{font-size:23px}.tabs button{font-size:12px;padding:10px 12px}.section-head{flex-wrap:wrap}#pendentes{grid-template-columns:1fr}.pending-item{flex-wrap:wrap}.pending-item button{width:100%}button[type=submit]{width:100%}.actions button{flex:1}}
-</style></head><body>
+</style><link rel="stylesheet" href="/os-sidebar.css"></head><body>
 <header><div><h1>EXCLUSIVE <span style="color:#d5b576">SÍNDICOS</span> · Frota</h1><small>Controle de veículos, consumo e manutenção</small></div><a href="/operacional.html">← Voltar ao operacional</a></header>
 <main>
 <section class="hero" aria-labelledby="heroTitle"><div><span class="eyebrow">Exclusive OS / Gestão de frota</span><h2 id="heroTitle">Tudo sobre os veículos em um só lugar.</h2><p>Registre a saída, confira o abastecimento na volta e acompanhe custos e revisões sem planilhas.</p></div><div class="hero-actions"><button type="button" class="primary" data-quick="retirada">+ Nova retirada</button><button type="button" data-quick="pendentes">Ver devoluções</button></div></section>
@@ -131,4 +131,4 @@ input[type=file]{padding:9px;background:#f7f6fa;border-style:dashed;cursor:point
 <section id="cadastro" hidden><div class="card"><h2>Cadastrar veículo</h2><form id="veiculoForm"><div class="grid">
 <label>Placa<input name="placa" maxlength="8" required></label><label>Modelo<input name="modelo" required></label><label>Marca<input name="marca"></label><label>Identificação interna<input name="identificacao"></label>
 </div><p><button>Cadastrar veículo</button></p></form></div></section>
-</main><script src="/frota-v2.js" defer></script></body></html>
+</main><script src="/frota-v2.js" defer></script><script src="/os-sidebar.js" defer></script></body></html>
