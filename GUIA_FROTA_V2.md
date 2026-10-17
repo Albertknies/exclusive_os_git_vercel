@@ -59,3 +59,15 @@ Se houver erro de serviço indisponível, verifique o SQL, Storage e as variáve
 - A interface continua utilizando as APIs e permissões existentes; nenhuma mudança de dados é necessária além da migração da frota.
 
 A revisão visual foi verificada quanto à sintaxe dos scripts e ausência de IDs HTML duplicados. Ainda é necessário fazer teste funcional em navegador com contas autorizadas e banco de homologação.
+
+## Gestão de equipe e carteiras
+
+Acesse `/equipe.html` após login autorizado. O painel usa os usuários ativos com perfil Síndico, os condomínios cadastrados e as tarefas, chamados e processos existentes. Se houver um usuário ativo chamado Grégory, ele será selecionado inicialmente. Não há dados fictícios no painel.
+
+A carga é a soma dos pontos A=4, B=7, C=11, D=16 por condomínio, comparada à média da equipe. Atrasos e pendências são indicadores da carteira, não avaliação de desempenho individual. Para métricas individuais de SLA e qualidade é necessária modelagem adicional.
+
+Para habilitar a redistribuição, execute `supabase/migrations/20261016_equipe_carteiras.sql` no Supabase SQL Editor após backup. A operação exige Master ou Gerente, confirmação explícita e justificativa, verifica alterações concorrentes, atualiza o responsável e grava auditoria transacional. A função RPC é restrita à chave de serviço no servidor.
+
+**Atenção:** a transferência não altera automaticamente os vínculos de acesso (`os_vinculos`), nem reatribui tarefas/chamados existentes. Revise essas atribuições após cada movimentação. O histórico fica em `os_carteira_transferencias` no Supabase.
+
+Arquivos adicionais: `api/equipe.js`, `public/equipe.html`, `public/equipe-v1.js` e `supabase/migrations/20261016_equipe_carteiras.sql`. Teste com contas Master/Gerente e um usuário Síndico antes de publicar.
