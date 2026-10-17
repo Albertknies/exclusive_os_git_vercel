@@ -5,7 +5,7 @@ const path=require('node:path');
 const port=Number(process.env.PORT||3000);
 const root=path.resolve(__dirname,'..','public');
 const pages=new Set(['index.html','demo.html','admin.html','ativar-master.html','operacional.html','veiculos.html','equipe.html','redefinir-senha.html']);
-const assets=new Set(['robots.txt','enhancements.js','vistoria_carteiras.js','painel_condominios.js','mobile_fixes.css','pdf_profissional.js','vistoria_avancada.js','navegacao_carteiras.js','frota-v2.js','equipe-v1.js']);
+const assets=new Set(['robots.txt','enhancements.js','vistoria_carteiras.js','painel_condominios.js','mobile_fixes.css','pdf_profissional.js','vistoria_avancada.js','navegacao_carteiras.js','frota-v2.js','equipe-v1.js','os-sidebar.js','os-sidebar.css','os-operacional.css','os-operacional.js']);
 const apiFiles=new Set(['access','bootstrap-master','carteiras','health','operacoes','password-reset','veiculos','equipe','vistoria-itens']);
 const types={'.html':'text/html; charset=utf-8','.js':'application/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.txt':'text/plain; charset=utf-8'};
 const server=http.createServer(async(req,res)=>{
