@@ -1,0 +1,15 @@
+/* Exclusive OS — corrigir navegação operacional em telas pequenas.
+   Menu permanece à esquerda, nunca se transforma em abas horizontais. */
+@media(max-width:850px){
+ #app>nav{position:fixed!important;top:0!important;left:0!important;bottom:0!important;width:min(278px,84vw)!important;max-width:84vw!important;display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;align-items:stretch!important;overflow-y:auto!important;z-index:1001!important;border-radius:0!important;padding:20px 11px!important;margin:0!important;transform:translateX(-105%);transition:transform .22s ease;background:#242447!important}
+ body.os-nav-open #app>nav{transform:translateX(0)}
+ #app>nav:before{width:auto!important;padding:18px 10px 22px!important;margin-bottom:15px!important}
+ #app>nav button,#app>nav a{width:100%!important;text-align:left!important;flex-shrink:0}
+ #os-operacional-toggle{display:block!important;position:fixed;top:12px;left:12px;z-index:1003;border:0;background:#242447;color:#fff;border-radius:9px;width:44px;height:44px;font-size:23px;padding:0!important}
+ #os-operacional-overlay{display:none;position:fixed;inset:0;background:#10102888;z-index:1000}
+ body.os-nav-open #os-operacional-overlay{display:block}
+ header{padding-left:69px!important;left:0!important}
+ main{margin-left:0!important}
+}
+@media(min-width:851px){#os-operacional-toggle,#os-operacional-overlay{display:none!important}}
+@media(prefers-reduced-motion:reduce){#app>nav{transition:none!important}}
