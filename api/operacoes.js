@@ -2,7 +2,7 @@ const {db,session,publicUser}=require('../lib/access');
 const ROLES_ADMIN=new Set(['Master','Gerente','Administrativo']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONFIG={
- condominios:{table:'os_condominios',fields:['nome','sindico','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,sindico,classe,status,unidades,regiao,equipamentos,updated_at'},
+ condominios:{table:'os_condominios',fields:['codigo','nome','endereco_completo','data_inicio_exclusive','sindico','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,endereco_completo,data_inicio_exclusive,sindico,classe,status,unidades,regiao,equipamentos,updated_at'},
  financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
  tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
  chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
@@ -13,6 +13,10 @@ function error(res,n,msg){return res.status(n).json({error:msg})}
 function clean(entity,body){
  const out={};for(const key of CONFIG[entity].fields)if(Object.prototype.hasOwnProperty.call(body,key))out[key]=body[key];
  for(const [k,v] of Object.entries(out))if(typeof v==='string')out[k]=v.trim();
+ if(out.codigo!==undefined&&(!/^[A-Za-z0-9][A-Za-z0-9._\\/-]{0,29}$/.test(out.codigo)))throw Error('Código inválido: use até 30 caracteres, letras, números, ponto, hífen ou barra');
+ if(out.endereco_completo!==undefined&&(typeof out.endereco_completo!=='string'||out.endereco_completo.length>500))throw Error('Endereço inválido');
+ if(out.data_inicio_exclusive!==undefined&&out.data_inicio_exclusive!==''&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(out.data_inicio_exclusive))throw Error('Data de início inválida');
+ if(out.data_inicio_exclusive==='')out.data_inicio_exclusive=null;
  if(out.nome!==undefined&&(!out.nome||out.nome.length>180||out.nome.length<2))throw Error('Nome inválido');
  if(out.titulo!==undefined&&(!out.titulo||out.titulo.length<3||out.titulo.length>180))throw Error('Título inválido');
  for(const k of ['descricao','observacoes'])if(out[k]!==undefined&&(typeof out[k]!=='string'||out[k].length>10000))throw Error('Texto excede limite');
@@ -67,11 +71,12 @@ module.exports=async function(req,res){
    const b=clean(entity,req.body||{});
    if(entity!=='condominios'&&(!b.condominio_id||!await allowed(client,actor,b.condominio_id)))return error(res,403,'Condomínio não autorizado');
    if(entity==='condominios'&&!b.nome)return error(res,400,'Informe o nome');
+   if(entity==='condominios'&&!b.codigo)return error(res,400,'Informe o código do condomínio');
    if(entity!=='condominios'&&!b.titulo)return error(res,400,'Informe o título');
    if(entity==='financeiro'&&!b.vencimento)return error(res,400,'Informe o vencimento');
    if(entity==='vistorias'&&!b.data_vistoria)return error(res,400,'Informe a data');
    if(entity!=='condominios')b.created_by=actor.id;
-   const {data,error:e}=await client.from(cfg.table).insert(b).select(cfg.select).single();if(e){if(e.code==='23503')return error(res,400,'Condomínio ou responsável não encontrado');throw e;}
+   const {data,error:e}=await client.from(cfg.table).insert(b).select(cfg.select).single();if(e){if(e.code==='23503')return error(res,400,'Condomínio ou responsável não encontrado');if(e.code==='23505')return error(res,409,'Código de condomínio já cadastrado');throw e;}
    await audit(client,actor,entity,data.id,'create');return res.status(201).json({item:data});
   }
   const id=String(req.body?.id||'');if(!UUID.test(id))return error(res,400,'ID inválido');
@@ -81,7 +86,7 @@ module.exports=async function(req,res){
   if(entity!=='condominios'&&!await allowed(client,actor,target.condominio_id))return error(res,403,'Sem acesso ao condomínio');
   const patch=clean(entity,req.body||{});delete patch.condominio_id;
   if(!Object.keys(patch).length)return error(res,400,'Nada para atualizar');patch.updated_at=new Date().toISOString();
-  const {data,error:e}=await client.from(cfg.table).update(patch).eq('id',id).select(cfg.select).single();if(e)throw e;
+  const {data,error:e}=await client.from(cfg.table).update(patch).eq('id',id).select(cfg.select).single();if(e){if(e.code==='23505')return error(res,409,'Código de condomínio já cadastrado');throw e;}
   await audit(client,actor,entity,id,'update');return res.status(200).json({item:data});
  }catch(e){if(/inválid|excede limite/.test(e.message))return error(res,400,e.message);console.error('operacoes:',e.message);return error(res,503,'Serviço indisponível ou banco não configurado')}
 };
