@@ -49,6 +49,7 @@ module.exports=async(req,res)=>{
    if(permitted)q=q.in('condominio_id',[...permitted]);
    const {data,error:e}=await q;if(e)throw e;return res.status(200).json({items:data||[]});
   }
+  if(method!=='GET'&&!ADMIN.has(actor.perfil)&&actor.perfil!=='Síndico')return fail(res,403,'Sem permissão para alterar manutenções');
   if(method==='POST'){
    const body=validate(req.body||{},true);
    if(permitted&&!permitted.has(body.condominio_id))return fail(res,403,'Condomínio fora da sua carteira');
@@ -61,7 +62,7 @@ module.exports=async(req,res)=>{
   if(!current)return fail(res,404,'Manutenção não encontrada');
   if(permitted&&!permitted.has(current.condominio_id))return fail(res,403,'Manutenção fora da sua carteira');
   if(req.body?.action==='help'){
-   if(ADMIN.has(actor.perfil))return fail(res,403,'Pedido de ajuda reservado ao síndico');
+   if(actor.perfil!=='Síndico')return fail(res,403,'Pedido de ajuda reservado ao síndico');
    if(current.pedido_ajuda)return fail(res,409,'A gerência já foi acionada');
    if(['Finalizada','Cancelada'].includes(current.status))return fail(res,409,'Manutenção encerrada');
    const {data:updated,error:ue}=await client.from('os_manutencoes').update({pedido_ajuda:true,ajuda_solicitada_em:new Date().toISOString(),ajuda_solicitada_por:actor.id,ajuda_email_status:'Pendente',updated_at:new Date().toISOString()}).eq('id',id).eq('pedido_ajuda',false).select(cols).maybeSingle();
