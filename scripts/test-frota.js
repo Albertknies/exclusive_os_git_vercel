@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const home=fs.readFileSync('public/operacional.html','utf8');
 const fleet=fs.readFileSync('public/veiculos.html','utf8');
 const api=fs.readFileSync('api/veiculos.js','utf8');
-for(const [name,html] of [['operacional',home],['veiculos',fleet]]){for(const m of html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g))new vm.Script(m[1],{filename:name})}
+for(const [name,html] of [['operacional',home],['veiculos',fleet]]){const script=html.split('<script>')[1]?.split('</script>')[0];assert(script,name+' sem script');new vm.Script(script,{filename:name})}
 new vm.Script(api,{filename:'api/veiculos.js'});
 assert(home.includes('href="/veiculos.html"'),'Menu da frota ausente');
 assert(fleet.includes('id="fuelForm"'),'Formulário de abastecimento ausente');
