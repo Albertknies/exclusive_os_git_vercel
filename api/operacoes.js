@@ -54,7 +54,7 @@ module.exports=async function(req,res){
  res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
  try{
   const method=req.method,entity=String(req.query?.entity||'');if(!CONFIG[entity])return error(res,404,'Módulo desconhecido');
-  if(!['GET','POST','PATCH'].includes(method))return error(res,405,'Método não permitido');
+  if(!['GET','POST','PATCH','DELETE'].includes(method))return error(res,405,'Método não permitido');
   if(method!=='GET'){
    const origin=req.headers.origin,host=req.headers['x-forwarded-host']||req.headers.host,proto=req.headers['x-forwarded-proto']||'https';
    if(origin&&origin!==`${proto}://${host}`)return error(res,403,'Origem não autorizada');
@@ -91,6 +91,20 @@ module.exports=async function(req,res){
   const {data:target,error:fe}=await client.from(cfg.table).select(lookup).eq('id',id).maybeSingle();if(fe)throw fe;
   if(!target)return error(res,404,'Registro não encontrado');
   if(entity!=='condominios'&&!await allowed(client,actor,target.condominio_id))return error(res,403,'Sem acesso ao condomínio');
+  if(method==='DELETE'){
+   if(entity!=='condominios')return error(res,405,'Exclusão não disponível neste módulo');
+   if(actor.perfil!=='Master')return error(res,403,'Somente Master pode excluir condomínios');
+   // Exclusão física somente para cadastro sem dependências. Nunca remover registros associados.
+   for(const table of ['os_vinculos','os_tarefas','os_processos','os_chamados','os_vistorias','os_financeiro']){
+    const {count,error:ce}=await client.from(table).select('id',{count:'exact',head:true}).eq('condominio_id',id);
+    if(ce)throw ce;
+    if(count>0)return error(res,409,'Este condomínio possui vínculos ou registros relacionados. Inative-o para preservar o histórico.');
+   }
+   const {error:de}=await client.from(cfg.table).delete().eq('id',id);
+   if(de){if(de.code==='23503')return error(res,409,'Há dados vinculados. Inative o condomínio para preservar o histórico.');throw de;}
+   await audit(client,actor,entity,id,'delete');
+   return res.status(200).json({deleted:true});
+  }
   const patch=clean(entity,req.body||{});await resolveSindico(client,entity,patch);delete patch.condominio_id;
   if(!Object.keys(patch).length)return error(res,400,'Nada para atualizar');patch.updated_at=new Date().toISOString();
   const {data,error:e}=await client.from(cfg.table).update(patch).eq('id',id).select(cfg.select).single();if(e)throw e;
