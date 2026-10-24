@@ -16,7 +16,9 @@ function card(item){const c=el('article','maint-item');const top=el('div','maint
  if(item.status==='Aberta'){const go=el('button','alt','▶ Iniciar');go.onclick=()=>update(item,'Em andamento');actions.append(go)}
  if(!['Finalizada','Cancelada'].includes(item.status)){const done=el('button','alt','✓ Finalizar');done.onclick=()=>update(item,'Finalizada');actions.append(done)}
  if(state.user?.perfil==='Síndico'&&!item.pedido_ajuda&&!['Finalizada','Cancelada'].includes(item.status)){const help=el('button','maint-danger','⚠ Pedir ajuda urgente ao gerente');help.onclick=()=>helpRequest(item);actions.append(help)}
+ if(['Master','Gerente'].includes(state.user?.perfil)){const remove=el('button','maint-danger','🗑 Excluir');remove.type='button';remove.onclick=()=>removeMaintenance(item,remove);actions.append(remove)}
  c.append(actions);return c}
+async function removeMaintenance(item,button){if(!confirm('Excluir permanentemente a manutenção "'+item.titulo+'"? Esta ação não pode ser desfeita.'))return;button.disabled=true;try{await api('DELETE',{id:item.id});if(editing?.id===item.id){editing=null;$m('maintEditor').hidden=true}await reload()}catch(e){alert(e.message);button.disabled=false}}
 async function update(item,status){if(!confirm('Alterar situação para '+status+'?'))return;try{await api('PATCH',{id:item.id,status});await reload()}catch(e){alert(e.message)}}
 async function helpRequest(item){if(!confirm('Enviar pedido urgente de ajuda à gerência para esta manutenção?'))return;try{const d=await api('PATCH',{id:item.id,action:'help'});await reload();alert('Urgência registrada no painel da gerência. E-mail: '+d.emailStatus)}catch(e){alert(e.message)}}
 window.renderMaintenance=function(){
