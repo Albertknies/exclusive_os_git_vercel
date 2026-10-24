@@ -1,0 +1,41 @@
+(function(){
+const $m=id=>document.getElementById(id);
+const el=(tag,cls,txt)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(txt!==undefined)n.textContent=txt;return n};
+const money=v=>v===null||v===undefined?'—':Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const api=async(method='GET',body)=>{const r=await fetch('/api/manutencoes',{method,credentials:'same-origin',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Erro '+r.status);return d};
+let filter={search:'',status:'Todas',tipo:'Todos',fornecedor:''},editing=null;
+function field(name,label,type='text',options){const l=el('label');l.textContent=label;let i;if(options){i=el('select');for(const [v,t] of options){const o=el('option');o.value=v;o.textContent=t;i.append(o)}}else if(type==='textarea')i=el('textarea');else{i=el('input');i.type=type}i.name=name;if(['condominio_id','titulo'].includes(name))i.required=true;l.append(i);return l}
+function fillOptions(){const f=$m('maintForm');const select=f.elements.condominio_id,old=select.value;select.replaceChildren();for(const c of state.condominios){const o=el('option');o.value=c.id;o.textContent=c.nome;select.append(o)}if(old)select.value=old}
+function edit(item){editing=item||null;const form=$m('maintForm');form.reset();fillOptions();if(item){for(const [k,v] of Object.entries(item))if(form.elements[k])form.elements[k].value=v??''}$m('maintFormTitle').textContent=item?'Editar manutenção':'Nova manutenção';$m('maintEditor').hidden=false;$m('maintEditor').scrollIntoView({behavior:'smooth',block:'start'})}
+async function reload(){try{const d=await api();state.manutencoes=d.items||[];window.renderMaintenance();window.renderMaintenanceAlert()}catch(e){$m('maintError').textContent=e.message;$m('maintError').hidden=false}}
+function card(item){const c=el('article','maint-item');const top=el('div','maint-item-top');const left=el('div');left.append(el('strong','',item.titulo),el('small','',displayCondo(item.condominio_id)));const badge=el('span','maint-pill '+(item.status==='Finalizada'?'done':''),item.status);top.append(left,badge);c.append(top);
+ const grid=el('div','maint-info');for(const [k,v] of [['Tipo',item.tipo],['Fornecedor',item.fornecedor||'Não informado'],['Valor',money(item.valor)],['Pagamento',item.forma_pagamento||'Não informado'],['Prazo',item.prazo||'Não definido']]){const d=el('div');d.append(el('small','',k),el('span','',v));grid.append(d)}c.append(grid);
+ if(item.observacoes)c.append(el('p','maint-notes',item.observacoes));
+ if(item.pedido_ajuda)c.append(el('div','maint-help-flag','🔴 Ajuda solicitada à gerência · '+(item.ajuda_email_status||'E-mail pendente')));
+ const actions=el('div','maint-actions');const editBtn=el('button','alt','✎ Editar');editBtn.onclick=()=>edit(item);actions.append(editBtn);
+ if(item.status==='Aberta'){const go=el('button','alt','▶ Iniciar');go.onclick=()=>update(item,'Em andamento');actions.append(go)}
+ if(!['Finalizada','Cancelada'].includes(item.status)){const done=el('button','alt','✓ Finalizar');done.onclick=()=>update(item,'Finalizada');actions.append(done)}
+ if(state.user?.perfil==='Síndico'&&!item.pedido_ajuda&&!['Finalizada','Cancelada'].includes(item.status)){const help=el('button','maint-danger','⚠ Pedir ajuda urgente ao gerente');help.onclick=()=>helpRequest(item);actions.append(help)}
+ c.append(actions);return c}
+async function update(item,status){if(!confirm('Alterar situação para '+status+'?'))return;try{await api('PATCH',{id:item.id,status});await reload()}catch(e){alert(e.message)}}
+async function helpRequest(item){if(!confirm('Enviar pedido urgente de ajuda à gerência para esta manutenção?'))return;try{const d=await api('PATCH',{id:item.id,action:'help'});await reload();alert('Urgência registrada no painel da gerência. E-mail: '+d.emailStatus)}catch(e){alert(e.message)}}
+window.renderMaintenance=function(){
+ const items=state.manutencoes||[],box=$m('maintItems');if(!box)return;
+ const totals=$m('maintStats');totals.replaceChildren();for(const [name,n] of [['Total',items.length],['Abertas',items.filter(x=>x.status==='Aberta').length],['Em andamento',items.filter(x=>x.status==='Em andamento').length],['Finalizadas',items.filter(x=>x.status==='Finalizada').length],['Urgências',items.filter(x=>x.pedido_ajuda&&x.status!=='Finalizada'&&x.status!=='Cancelada').length]]){const d=el('div','maint-stat');d.append(el('small','',name),el('strong','',String(n)));totals.append(d)}
+ const types=[...new Set(items.map(x=>x.tipo).filter(Boolean))].sort();const type=$m('maintType');type.replaceChildren();for(const v of ['Todos',...types]){const o=el('option');o.value=v;o.textContent=v;type.append(o)}type.value=types.includes(filter.tipo)?filter.tipo:'Todos';
+ const shown=items.filter(x=>(!filter.search||[x.titulo,displayCondo(x.condominio_id),x.observacoes].join(' ').toLowerCase().includes(filter.search.toLowerCase()))&&(filter.status==='Todas'||x.status===filter.status)&&(filter.tipo==='Todos'||x.tipo===filter.tipo)&&(!filter.fornecedor||x.fornecedor?.toLowerCase().includes(filter.fornecedor.toLowerCase())));
+ box.replaceChildren();for(const item of shown)box.append(card(item));if(!shown.length)box.append(el('p','maint-empty','Nenhuma manutenção encontrada para estes filtros.'));
+ $m('maintCount').textContent=shown.length+' de '+items.length+' manutenções';
+};
+window.renderMaintenanceAlert=function(){
+ const banner=$m('maintManagerAlert');if(!banner)return;const urgent=(state.manutencoes||[]).filter(x=>x.pedido_ajuda&&!['Finalizada','Cancelada'].includes(x.status));banner.hidden=!['Master','Gerente'].includes(state.user?.perfil)||!urgent.length;const list=$m('maintUrgentList');list.replaceChildren();for(const x of urgent){const b=el('button','maint-alert-entry','⚠ '+displayCondo(x.condominio_id)+' — '+x.titulo);b.onclick=()=>{state.tab='manutencoes';render();edit(x)};list.append(b)}
+};
+document.addEventListener('DOMContentLoaded',()=>{
+ const form=$m('maintForm');if(!form)return;
+ form.append(field('condominio_id','Condomínio','text',[]),field('titulo','Título do serviço'),field('tipo','Tipo de manutenção','text',[['Corretiva','Corretiva'],['Preventiva','Preventiva'],['Emergencial','Emergencial'],['Inspeção','Inspeção'],['Outra','Outra']]),field('fornecedor','Fornecedor (digite o nome)'),field('valor','Valor do serviço (R$)','number'),field('forma_pagamento','Forma de pagamento','text',[['','Selecione'],['Pix','Pix'],['Boleto','Boleto'],['Transferência','Transferência'],['Cartão','Cartão'],['Dinheiro','Dinheiro'],['Outro','Outro']]),field('prazo','Prazo','date'),field('status','Situação','text',[['Aberta','Aberta'],['Em andamento','Em andamento'],['Finalizada','Finalizada'],['Cancelada','Cancelada']]),field('observacoes','Observações','textarea'));
+ const actions=el('div','maint-actions');const save=el('button','','Salvar manutenção');save.type='submit';const cancel=el('button','alt','Cancelar');cancel.type='button';cancel.onclick=()=>$m('maintEditor').hidden=true;actions.append(save,cancel);form.append(actions);
+ form.onsubmit=async e=>{e.preventDefault();const body=Object.fromEntries(new FormData(form));if(editing)body.id=editing.id;try{await api(editing?'PATCH':'POST',body);$m('maintEditor').hidden=true;editing=null;await reload()}catch(e){alert(e.message)}};
+ $m('maintNew').onclick=()=>edit(null);
+ for(const [id,key] of [['maintSearch','search'],['maintStatus','status'],['maintType','tipo'],['maintSupplier','fornecedor']])$m(id).addEventListener(id==='maintSearch'||id==='maintSupplier'?'input':'change',e=>{filter[key]=e.target.value;window.renderMaintenance()});
+});
+})();
