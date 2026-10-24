@@ -95,7 +95,7 @@ module.exports=async function(req,res){
    if(entity!=='condominios')return error(res,405,'Exclusão não disponível neste módulo');
    if(actor.perfil!=='Master')return error(res,403,'Somente Master pode excluir condomínios');
    // Exclusão física somente para cadastro sem dependências. Nunca remover registros associados.
-   for(const table of ['os_vinculos','os_tarefas','os_processos','os_chamados','os_vistorias','os_financeiro']){
+   for(const table of ['os_vinculos','os_tarefas','os_processos','os_chamados','os_vistorias','os_financeiro','os_manutencoes']){
     const {count,error:ce}=await client.from(table).select('id',{count:'exact',head:true}).eq('condominio_id',id);
     if(ce)throw ce;
     if(count>0)return error(res,409,'Este condomínio possui vínculos ou registros relacionados. Inative-o para preservar o histórico.');
