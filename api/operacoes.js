@@ -64,6 +64,7 @@ module.exports=async function(req,res){
   const s=session(req);if(!s)return error(res,401,'Entre no sistema');
   const client=db();const {data:actor,error:ae}=await client.from('os_users').select('id,nome,perfil,ativo').eq('id',s.id).maybeSingle();if(ae)throw ae;
   if(!actor||!actor.ativo)return error(res,401,'Conta inativa');
+  if(entity==='financeiro'&&actor.perfil!=='Master')return error(res,403,'Financeiro exclusivo do Master');
   const cfg=CONFIG[entity];
   if(method==='GET'){
    let q=client.from(cfg.table).select(cfg.select).order('created_at',{ascending:false}).limit(500);
