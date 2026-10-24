@@ -2,7 +2,7 @@ const {db,session,publicUser}=require('../lib/access');
 const ROLES_ADMIN=new Set(['Master','Gerente','Administrativo']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONFIG={
- condominios:{table:'os_condominios',fields:['nome','sindico','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,sindico,classe,status,unidades,regiao,equipamentos,updated_at'},
+ condominios:{table:'os_condominios',fields:['codigo','nome','endereco_completo','data_inicio_exclusive','sindico','sindico_user_id','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,endereco_completo,data_inicio_exclusive,sindico,sindico_user_id,classe,status,unidades,regiao,equipamentos,updated_at'},
  financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
  tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
  chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
@@ -13,6 +13,11 @@ function error(res,n,msg){return res.status(n).json({error:msg})}
 function clean(entity,body){
  const out={};for(const key of CONFIG[entity].fields)if(Object.prototype.hasOwnProperty.call(body,key))out[key]=body[key];
  for(const [k,v] of Object.entries(out))if(typeof v==='string')out[k]=v.trim();
+ if(out.codigo!==undefined){if(typeof out.codigo!=='string'||out.codigo.length>40||!(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(out.codigo)))throw Error('Código do condomínio inválido');}
+ if(out.endereco_completo!==undefined&&(typeof out.endereco_completo!=='string'||out.endereco_completo.length>500))throw Error('Endereço completo inválido');
+ if(out.data_inicio_exclusive!==undefined){if(out.data_inicio_exclusive==='')out.data_inicio_exclusive=null;else if(typeof out.data_inicio_exclusive!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(out.data_inicio_exclusive)||Number.isNaN(Date.parse(out.data_inicio_exclusive)))throw Error('Data de início inválida');}
+ if(out.sindico_user_id!==undefined&&out.sindico_user_id==='')out.sindico_user_id=null;
+ if(out.sindico_user_id!==undefined&&out.sindico_user_id!==null&&!UUID.test(out.sindico_user_id))throw Error('Síndico inválido');
  if(out.nome!==undefined&&(!out.nome||out.nome.length>180||out.nome.length<2))throw Error('Nome inválido');
  if(out.titulo!==undefined&&(!out.titulo||out.titulo.length<3||out.titulo.length>180))throw Error('Título inválido');
  for(const k of ['descricao','observacoes'])if(out[k]!==undefined&&(typeof out[k]!=='string'||out[k].length>10000))throw Error('Texto excede limite');
@@ -37,6 +42,13 @@ async function allowed(dbClient,actor,condoId){
  if(ROLES_ADMIN.has(actor.perfil))return true;
  if(!condoId||!UUID.test(condoId))return false;
  const {data,error:e}=await dbClient.from('os_vinculos').select('condominio_id').eq('user_id',actor.id).eq('condominio_id',condoId).maybeSingle();if(e)throw e;return !!data;
+}
+async function resolveSindico(client,entity,record){
+ if(entity!=='condominios'||!record.sindico_user_id)return;
+ const {data:user,error:e}=await client.from('os_users').select('id,nome,perfil,ativo').eq('id',record.sindico_user_id).maybeSingle();
+ if(e)throw e;
+ if(!user||!user.ativo||user.perfil!=='Síndico')throw Error('Síndico cadastrado inválido');
+ record.sindico=user.nome;
 }
 module.exports=async function(req,res){
  res.setHeader('Cache-Control','no-store');res.setHeader('X-Content-Type-Options','nosniff');
@@ -64,7 +76,7 @@ module.exports=async function(req,res){
   }
   if(!ROLES_ADMIN.has(actor.perfil)&&['condominios','financeiro'].includes(entity))return error(res,403,'Sem permissão para alterar este módulo');
   if(method==='POST'){
-   const b=clean(entity,req.body||{});
+   const b=clean(entity,req.body||{});await resolveSindico(client,entity,b);
    if(entity!=='condominios'&&(!b.condominio_id||!await allowed(client,actor,b.condominio_id)))return error(res,403,'Condomínio não autorizado');
    if(entity==='condominios'&&!b.nome)return error(res,400,'Informe o nome');
    if(entity!=='condominios'&&!b.titulo)return error(res,400,'Informe o título');
@@ -79,7 +91,7 @@ module.exports=async function(req,res){
   const {data:target,error:fe}=await client.from(cfg.table).select(lookup).eq('id',id).maybeSingle();if(fe)throw fe;
   if(!target)return error(res,404,'Registro não encontrado');
   if(entity!=='condominios'&&!await allowed(client,actor,target.condominio_id))return error(res,403,'Sem acesso ao condomínio');
-  const patch=clean(entity,req.body||{});delete patch.condominio_id;
+  const patch=clean(entity,req.body||{});await resolveSindico(client,entity,patch);delete patch.condominio_id;
   if(!Object.keys(patch).length)return error(res,400,'Nada para atualizar');patch.updated_at=new Date().toISOString();
   const {data,error:e}=await client.from(cfg.table).update(patch).eq('id',id).select(cfg.select).single();if(e)throw e;
   await audit(client,actor,entity,id,'update');return res.status(200).json({item:data});
