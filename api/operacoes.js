@@ -106,7 +106,7 @@ module.exports=async function(req,res){
    return res.status(200).json({deleted:true});
   }
   const patch=clean(entity,req.body||{});await resolveSindico(client,entity,patch);delete patch.condominio_id;
-  if(entity==='chamados'&&patch.resposta_sindico!==undefined){if(typeof patch.resposta_sindico!=='string'||patch.resposta_sindico.length<5||patch.resposta_sindico.length>3000)return error(res,400,'Resposta deve ter entre 5 e 3000 caracteres');patch.respondido_em=new Date().toISOString();if(target.status==='Aberto'&&patch.status===undefined)patch.status='Em andamento';}
+  if(entity==='chamados'&&patch.resposta_sindico!==undefined){if(typeof patch.resposta_sindico!=='string'||patch.resposta_sindico.length<5||patch.resposta_sindico.length>3000)return error(res,400,'Resposta deve ter entre 5 e 3000 caracteres');patch.respondido_em=new Date().toISOString();if(patch.status===undefined)patch.status='Em andamento';}
   if(!Object.keys(patch).length)return error(res,400,'Nada para atualizar');patch.updated_at=new Date().toISOString();
   const {data,error:e}=await client.from(cfg.table).update(patch).eq('id',id).select(cfg.select).single();if(e)throw e;
   await audit(client,actor,entity,id,'update');return res.status(200).json({item:data});
