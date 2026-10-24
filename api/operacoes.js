@@ -2,7 +2,7 @@ const {db,session,publicUser}=require('../lib/access');
 const ROLES_ADMIN=new Set(['Master','Gerente','Administrativo']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONFIG={
- condominios:{table:'os_condominios',fields:['nome','sindico','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,sindico,classe,status,unidades,regiao,equipamentos,updated_at'},
+ condominios:{table:'os_condominios',fields:['codigo','nome','endereco_completo','data_inicio_exclusive','sindico','sindico_user_id','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,endereco_completo,data_inicio_exclusive,sindico,sindico_user_id,classe,status,unidades,regiao,equipamentos,updated_at'},
  financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
  tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
  chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at'},
@@ -13,6 +13,11 @@ function error(res,n,msg){return res.status(n).json({error:msg})}
 function clean(entity,body){
  const out={};for(const key of CONFIG[entity].fields)if(Object.prototype.hasOwnProperty.call(body,key))out[key]=body[key];
  for(const [k,v] of Object.entries(out))if(typeof v==='string')out[k]=v.trim();
+ if(out.codigo!==undefined){if(typeof out.codigo!=='string'||out.codigo.length>40||!(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(out.codigo)))throw Error('Código do condomínio inválido');}
+ if(out.endereco_completo!==undefined&&(typeof out.endereco_completo!=='string'||out.endereco_completo.length>500))throw Error('Endereço completo inválido');
+ if(out.data_inicio_exclusive!==undefined){if(out.data_inicio_exclusive==='')out.data_inicio_exclusive=null;else if(typeof out.data_inicio_exclusive!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(out.data_inicio_exclusive)||Number.isNaN(Date.parse(out.data_inicio_exclusive)))throw Error('Data de início inválida');}
+ if(out.sindico_user_id!==undefined&&out.sindico_user_id==='')out.sindico_user_id=null;
+ if(out.sindico_user_id!==undefined&&out.sindico_user_id!==null&&!UUID.test(out.sindico_user_id))throw Error('Síndico inválido');
  if(out.nome!==undefined&&(!out.nome||out.nome.length>180||out.nome.length<2))throw Error('Nome inválido');
  if(out.titulo!==undefined&&(!out.titulo||out.titulo.length<3||out.titulo.length>180))throw Error('Título inválido');
  for(const k of ['descricao','observacoes'])if(out[k]!==undefined&&(typeof out[k]!=='string'||out[k].length>10000))throw Error('Texto excede limite');
