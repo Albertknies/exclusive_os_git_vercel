@@ -10,7 +10,8 @@
     "test:flows": "node scripts/test-flows.js",
     "bootstrap:ceo": "node scripts/bootstrap-ceo.js",
     "import:condos": "node scripts/importar-condominios.js",
-    "test:backend": "node scripts/test-backend.js"
+    "test:backend": "node scripts/test-backend.js",
+    "test:reports": "node scripts/test-relatorios.js"
   },
   "engines": {
     "node": ">=18"
