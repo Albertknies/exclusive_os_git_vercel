@@ -28,7 +28,7 @@ module.exports=async(req,res)=>{
    }
    if(action==='sindicos'){
     if(!admin)return fail(res,403,'Sem permissão');
-    const {data,error}=await c.from('os_users').select('id,nome').eq('perfil','Síndico').eq('ativo',true).order('nome').limit(500);
+    const {data,error}=await c.from('os_sindicos_cadastro').select('id,nome').eq('ativo',true).order('nome').limit(500);
     if(error)throw error;return res.json({items:data||[]});
    }
    if(action==='abastecimentos'){
@@ -38,9 +38,9 @@ module.exports=async(req,res)=>{
     const {data,error}=await q;if(error)throw error;return res.json({items:data||[]});
    }
    if(action==='usos'){
-    let q=c.from('os_veiculo_usos').select('id,veiculo_id,sindico_id,registrado_por,inicio,fim,km_inicial,km_final,destino,finalidade,observacoes').order('inicio',{ascending:false}).limit(1000);
+    let q=c.from('os_veiculo_usos').select('id,veiculo_id,sindico_id,sindico_cadastro_id,registrado_por,inicio,fim,km_inicial,km_final,destino,finalidade,observacoes').order('inicio',{ascending:false}).limit(1000);
     if(!admin)q=q.eq('sindico_id',user.id);
-    else if(req.query?.sindico_id){if(!UUID.test(req.query.sindico_id))return fail(res,400,'Síndico inválido');q=q.eq('sindico_id',req.query.sindico_id)}
+    else if(req.query?.sindico_id){if(!UUID.test(req.query.sindico_id))return fail(res,400,'Síndico inválido');q=q.eq('sindico_cadastro_id',req.query.sindico_id)}
     if(req.query?.veiculo_id){if(!UUID.test(req.query.veiculo_id))return fail(res,400,'Veículo inválido');q=q.eq('veiculo_id',req.query.veiculo_id)}
     const {data,error}=await q;if(error)throw error;return res.json({items:data||[]});
    }
@@ -63,15 +63,15 @@ module.exports=async(req,res)=>{
    await audit('abastecimento',veiculo_id,data.id,{km,litros,tanque_cheio:b.tanque_cheio});return res.status(201).json({item:data});
   }
   if(req.method==='POST'&&action==='uso'){
-   const veiculo_id=String(b.veiculo_id||''),sindico_id=admin?String(b.sindico_id||''):user.id;
-   if(!UUID.test(veiculo_id)||!UUID.test(sindico_id))return fail(res,400,'Veículo ou síndico inválido');
-   const {data:sindico,error:se}=await c.from('os_users').select('id').eq('id',sindico_id).eq('perfil','Síndico').eq('ativo',true).maybeSingle();
+   const veiculo_id=String(b.veiculo_id||''),sindico_id=admin?null:user.id,sindico_cadastro_id=admin?String(b.sindico_id||''):null;
+   if(!UUID.test(veiculo_id)||(admin?!UUID.test(sindico_cadastro_id):!UUID.test(sindico_id)))return fail(res,400,'Veículo ou síndico inválido');
+   const {data:sindico,error:se}=await c.from(admin?'os_sindicos_cadastro':'os_users').select('id').eq('id',admin?sindico_cadastro_id:sindico_id).eq('ativo',true).maybeSingle();
    if(se)throw se;if(!sindico)return fail(res,400,'Síndico não encontrado');
    const {data:v,error:ve}=await c.from('os_veiculos').select('status').eq('id',veiculo_id).maybeSingle();
    if(ve)throw ve;if(!v||v.status!=='Disponível')return fail(res,409,'Veículo indisponível');
    const km=Number(b.km_inicial),inicio=Date.parse(b.inicio),destino=clean(b.destino,200),finalidade=clean(b.finalidade,500);
    if(!Number.isFinite(km)||km<0||!Number.isFinite(inicio)||destino.length<2||finalidade.length<2)return fail(res,400,'Dados de retirada inválidos');
-   const {data,error}=await c.from('os_veiculo_usos').insert({veiculo_id,sindico_id,registrado_por:user.id,inicio:new Date(inicio).toISOString(),km_inicial:km,destino,finalidade,observacoes:clean(b.observacoes,2000)}).select('*').single();
+   const {data,error}=await c.from('os_veiculo_usos').insert({veiculo_id,sindico_id,sindico_cadastro_id,registrado_por:user.id,inicio:new Date(inicio).toISOString(),km_inicial:km,destino,finalidade,observacoes:clean(b.observacoes,2000)}).select('*').single();
    if(error){if(error.code==='23505')return fail(res,409,'Veículo já em uso');throw error}
    await audit('retirada',veiculo_id,data.id,{sindico_id});return res.status(201).json({item:data});
   }
