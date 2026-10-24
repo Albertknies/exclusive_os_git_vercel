@@ -8,10 +8,10 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 function clear(){ $('#userForm').reset();$('#userForm').elements.id.value='';$('#formTitle').textContent='Cadastrar usuário';$('#userForm').elements.senha.required=true}
 function edit(id){let u=users.find(x=>x.id===id);if(!u)return;let f=$('#userForm').elements;for(let k of ['id','nome','cpf','email','perfil'])f[k].value=u[k];f.ativo.value=String(u.ativo);f.senha.value='';f.senha.required=false;$('#formTitle').textContent='Editar '+u.nome;$('#userForm').scrollIntoView({behavior:'smooth'})}
 function render(){let auth=!!me;$('#login').hidden=auth;$('#app').hidden=!auth;$('#logout').hidden=!auth;if(!auth)return;$('#who').textContent=me.nome+' · '+me.perfil;$('#rows').innerHTML=users.map(u=>`<tr><td>${esc(u.nome)}</td><td>${esc(u.cpf)}</td><td>${esc(u.email)}</td><td>${esc(u.perfil)}</td><td>${u.ativo?'Ativo':'Bloqueado'}</td><td><button class="secondary" data-id="${esc(u.id)}">Editar</button></td></tr>`).join('');$('#rows').querySelectorAll('button').forEach(b=>b.onclick=()=>edit(b.dataset.id));for(const option of $('#userForm').elements.perfil.options){if(option.value==='Master'||option.value==='Gerente')option.disabled=me.perfil!=='Master'}}
-async function refresh(){let d=await api('me');me=d.user;let r=await api('users');users=r.users;render()}
-$('#loginForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);try{await api('login','POST',Object.fromEntries(f));await refresh();e.target.reset();notify('Acesso autorizado');window.location.assign('/operacional.html')}catch(x){notify(x.message,true)}};
-$('#logout').onclick=async()=>{await api('logout','POST');me=null;users=[];render();notify('Sessão encerrada')};
+async function refresh(){let d=await api('me');if(!['Master','Gerente'].includes(d.user?.perfil)){me=null;users=[];render();throw Error('Seu perfil não tem permissão para gerenciar usuários.');}let r=await api('users');me=d.user;users=r.users;render()}
+$('#loginForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target);try{await api('login','POST',Object.fromEntries(f));await refresh();e.target.reset();notify('Acesso autorizado. Você já pode cadastrar e editar usuários.')}catch(x){notify(x.message,true)}};
+$('#logout').onclick=async()=>{try{await api('logout','POST');me=null;users=[];render();notify('Sessão encerrada')}catch(e){notify(e.message,true)}};
 $('#clear').onclick=clear;
 $('#userForm').onsubmit=async e=>{e.preventDefault();let f=new FormData(e.target),b=Object.fromEntries(f);b.ativo=b.ativo==='true';if(!b.senha)delete b.senha;try{await api('users',b.id?'PATCH':'POST',b);clear();await refresh();notify('Usuário salvo com sucesso')}catch(x){notify(x.message,true)}};
-refresh().catch(()=>{me=null;render()});clear();
+refresh().catch(e=>{me=null;users=[];render();if(!/Sessão expirada|Entre novamente|401/.test(e.message))notify(e.message,true)});clear();
 </script></body></html>
