@@ -12,7 +12,7 @@ function validate(b,creating){
  for(const f of ['tipo','fornecedor','forma_pagamento','observacoes'])if(p[f]!==undefined){if(typeof p[f]!=='string'||p[f].length>(f==='observacoes'?5000:180))throw Error('Campo '+f+' inválido');p[f]=p[f].trim()}
  if(p.status!==undefined&&!['Aberta','Em andamento','Finalizada','Cancelada'].includes(p.status))throw Error('Situação inválida');
  if(p.valor!==undefined){if(p.valor==='')p.valor=null;else if(!Number.isFinite(Number(p.valor))||Number(p.valor)<0||Number(p.valor)>999999999)throw Error('Valor inválido');else p.valor=Number(p.valor)}
- if(p.prazo!==undefined){if(p.prazo==='')p.prazo=null;else if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(p.prazo))throw Error('Prazo inválido')}
+ if(p.prazo!==undefined){if(p.prazo==='')p.prazo=null;else if(!/^\d{4}-\d{2}-\d{2}$/.test(p.prazo))throw Error('Prazo inválido')}
  return p;
 }
 async function notifyManagers(client,item,actor){
