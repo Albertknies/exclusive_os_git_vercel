@@ -1,3 +1,4 @@
+const crypto=require('node:crypto');
 const {db,session,publicUser}=require('../lib/access');
 const ROLES_ADMIN=new Set(['Master','Gerente','Administrativo']);
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -5,7 +6,7 @@ const CONFIG={
  condominios:{table:'os_condominios',fields:['codigo','nome','endereco_completo','data_inicio_exclusive','sindico','sindico_user_id','classe','status','unidades','regiao','equipamentos'],select:'id,codigo,nome,endereco_completo,data_inicio_exclusive,sindico,sindico_user_id,classe,status,unidades,regiao,equipamentos,updated_at'},
  financeiro:{table:'os_financeiro',fields:['condominio_id','titulo','descricao','tipo','valor','vencimento','status'],select:'id,condominio_id,titulo,descricao,tipo,valor,vencimento,status,created_at,updated_at'},
  tarefas:{table:'os_tarefas',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
- chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','resposta_sindico'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,protocolo,categoria,apartamento,solicitante_nome,solicitante_email,origem,resposta_sindico,respondido_em,prazo_resposta,created_at,updated_at'},
+ chamados:{table:'os_chamados',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','resposta_sindico'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,protocolo,categoria,apartamento,solicitante_nome,solicitante_email,origem,resposta_sindico,respondido_em,prazo_resposta,encerrado_em,avaliacao_nota,avaliacao_observacao,avaliado_em,created_at,updated_at'},
  processos:{table:'os_processos',fields:['condominio_id','titulo','descricao','status','prioridade','responsavel_id','categoria','prazo'],select:'id,condominio_id,titulo,descricao,status,prioridade,responsavel_id,created_at,updated_at,categoria,prazo'},
  vistorias:{table:'os_vistorias',fields:['condominio_id','titulo','data_vistoria','observacoes','status'],select:'id,condominio_id,titulo,data_vistoria,observacoes,status,created_at,updated_at'}
 };
@@ -105,8 +106,16 @@ module.exports=async function(req,res){
    await audit(client,actor,entity,id,'delete');
    return res.status(200).json({deleted:true});
   }
+  if(entity==='chamados'&&req.body?.action==='encerrar'){
+   const {data:ticket,error:te}=await client.from('os_chamados').select('status,solicitante_email,encerrado_em,avaliacao_nota').eq('id',id).single();if(te)throw te;
+   if(ticket.encerrado_em||ticket.status==='Encerrado')return error(res,409,'Chamado já encerrado');
+   if(!ticket.solicitante_email)return error(res,400,'Informe o e-mail do morador antes de encerrar este chamado');
+   const token=crypto.randomBytes(32).toString('hex');const hash=crypto.createHash('sha256').update(token).digest('hex');
+   const {data:closed,error:ce}=await client.from('os_chamados').update({status:'Encerrado',encerrado_em:new Date().toISOString(),avaliacao_token_hash:hash,updated_at:new Date().toISOString()}).eq('id',id).is('encerrado_em',null).select(cfg.select).maybeSingle();if(ce)throw ce;if(!closed)return error(res,409,'Chamado já encerrado');
+   await audit(client,actor,entity,id,'update');return res.status(200).json({item:closed,avaliacao_token:token});
+  }
   const patch=clean(entity,req.body||{});await resolveSindico(client,entity,patch);delete patch.condominio_id;
-  if(entity==='chamados'&&patch.resposta_sindico!==undefined){if(typeof patch.resposta_sindico!=='string'||patch.resposta_sindico.length<5||patch.resposta_sindico.length>3000)return error(res,400,'Resposta deve ter entre 5 e 3000 caracteres');patch.respondido_em=new Date().toISOString();if(patch.status===undefined)patch.status='Em andamento';}
+  if(entity==='chamados'&&patch.resposta_sindico!==undefined){const {data:closed}=await client.from('os_chamados').select('encerrado_em').eq('id',id).single();if(closed?.encerrado_em)return error(res,409,'Chamado encerrado não aceita novas respostas');if(typeof patch.resposta_sindico!=='string'||patch.resposta_sindico.length<5||patch.resposta_sindico.length>3000)return error(res,400,'Resposta deve ter entre 5 e 3000 caracteres');patch.respondido_em=new Date().toISOString();if(patch.status===undefined)patch.status='Em andamento';}
   if(!Object.keys(patch).length)return error(res,400,'Nada para atualizar');patch.updated_at=new Date().toISOString();
   const {data,error:e}=await client.from(cfg.table).update(patch).eq('id',id).select(cfg.select).single();if(e)throw e;
   await audit(client,actor,entity,id,'update');return res.status(200).json({item:data});
