@@ -29,7 +29,7 @@ async function notifyManagers(client,item,actor){
 module.exports=async(req,res)=>{
  res.setHeader('Cache-Control','no-store');
  try{
-  const method=req.method;if(!['GET','POST','PATCH'].includes(method))return fail(res,405,'Método não permitido');
+  const method=req.method;if(!['GET','POST','PATCH','DELETE'].includes(method))return fail(res,405,'Método não permitido');
   if(method!=='GET'){
    const origin=req.headers.origin,host=req.headers['x-forwarded-host']||req.headers.host,proto=req.headers['x-forwarded-proto']||'https';
    if(origin&&origin!==proto+'://'+host)return fail(res,403,'Origem não autorizada');
@@ -61,6 +61,13 @@ module.exports=async(req,res)=>{
   const {data:current,error:ce}=await client.from('os_manutencoes').select(cols).eq('id',id).maybeSingle();if(ce)throw ce;
   if(!current)return fail(res,404,'Manutenção não encontrada');
   if(permitted&&!permitted.has(current.condominio_id))return fail(res,403,'Manutenção fora da sua carteira');
+  if(method==='DELETE'){
+   if(!ADMIN.has(actor.perfil))return fail(res,403,'Somente Master ou Gerente pode excluir manutenções');
+   const {data:deleted,error:de}=await client.from('os_manutencoes').delete().eq('id',id).select('id').maybeSingle();
+   if(de)throw de;
+   if(!deleted)return fail(res,404,'Manutenção não encontrada');
+   return res.status(200).json({deleted:true});
+  }
   if(req.body?.action==='help'){
    if(actor.perfil!=='Síndico')return fail(res,403,'Pedido de ajuda reservado ao síndico');
    if(current.pedido_ajuda)return fail(res,409,'A gerência já foi acionada');
