@@ -145,6 +145,32 @@ table td{padding:13px 12px}
 @media(max-width:850px){#app>nav.os-sidebar{position:static;width:auto!important;max-height:none;border-radius:13px;margin-bottom:16px;box-shadow:none}.os-sidebar-brand{min-height:65px;padding:12px 15px}.os-sidebar-scroll{overflow:visible;padding:8px 10px;display:flex;flex-wrap:wrap;gap:8px}.os-nav-group{margin:0;flex:1 1 205px}.os-nav-label{padding:9px 8px}.os-sidebar-footer{padding:6px 10px 12px}.os-sidebar-version{display:none}}
 @media(max-width:500px){.os-sidebar-scroll{display:grid;grid-template-columns:1fr 1fr;gap:8px}.os-nav-group{min-width:0}.os-nav-group:nth-child(2){grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:2px 6px}.os-nav-group:nth-child(2) .os-nav-label{grid-column:1/-1}#app>nav.os-sidebar button,#app>nav.os-sidebar a{min-width:0;padding:9px!important}#app>nav.os-sidebar button span,#app>nav.os-sidebar a span{font-size:11px}}
 @media(prefers-reduced-motion:reduce){#app>nav.os-sidebar button,#app>nav.os-sidebar a{transition:none}}
+
+/* Ajuste fino de escala visual: navegação + visão geral; carteiras preservadas */
+@media(min-width:851px){
+ #app>nav.os-sidebar{width:274px}
+ header{left:274px}
+ main{margin-left:274px}
+}
+#app>nav.os-sidebar button,#app>nav.os-sidebar a{gap:13px;min-height:45px;font-size:14px!important;line-height:1.4}
+#app>nav.os-sidebar button span,#app>nav.os-sidebar a span{font-size:14px;font-weight:560}
+#app>nav.os-sidebar .os-nav-icon{width:21px;height:21px;stroke-width:1.8}
+.os-sidebar-brand strong{font-size:12.5px}
+.os-sidebar-brand small{font-size:9.5px}
+.os-nav-label{font-size:10px;letter-spacing:1.25px}
+#app>nav.os-sidebar .os-nav-arrow{font-size:14px!important}
+#pageHeading h2{font-size:30px}
+#pageHeading p{font-size:14px;line-height:1.5}
+#dashboard>.stats .stat span{font-size:13px}
+#dashboard>.stats .stat strong{font-size:33px}
+#dashboard h2{font-size:18px}
+#dashboard p,#dashboard small{font-size:13px;line-height:1.55}
+@media(max-width:500px){
+ #app>nav.os-sidebar button span,#app>nav.os-sidebar a span{font-size:12px}
+ #app>nav.os-sidebar button,#app>nav.os-sidebar a{font-size:12px!important}
+ #app>nav.os-sidebar .os-nav-icon{width:19px;height:19px}
+ #pageHeading h2{font-size:26px}
+}
 </style></head><body>
 <header><h1>◆ EXCLUSIVE OS <span style="color:#d5bb87">| Operações</span></h1><div><span id="who"></span> <button class="gold" id="logout" hidden>Sair</button></div></header><main><div id="message" role="status" class="notice" hidden></div><section id="login"><h2>Acesso seguro</h2><p>Use o CPF e a senha cadastrados no backend. O login demonstrativo não funciona nesta área.</p><form id="loginForm"><label>CPF<input name="cpf" required autocomplete="username" inputmode="numeric"></label><label>Senha<input name="senha" required type="password" autocomplete="current-password"></label><p><button>Entrar</button></p><p style="text-align:right;margin:12px 0 0"><a href="/redefinir-senha.html" style="color:#302f61;font-weight:650;text-decoration:underline">Esqueci minha senha</a></p></form></section>
 <div id="app" hidden><nav aria-label="Menu principal" class="os-sidebar">
