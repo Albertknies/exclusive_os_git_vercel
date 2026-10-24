@@ -31,6 +31,12 @@ module.exports=async(req,res)=>{
     const {data,error}=await c.from('os_users').select('id,nome').eq('perfil','Síndico').eq('ativo',true).order('nome').limit(500);
     if(error)throw error;return res.json({items:data||[]});
    }
+   if(action==='abastecimentos'){
+    let q=c.from('os_veiculo_abastecimentos').select('id,veiculo_id,registrado_por,data_abastecimento,km,litros,valor_total,tanque_cheio,posto,observacoes').order('data_abastecimento',{ascending:false}).limit(1000);
+    if(req.query?.veiculo_id){if(!UUID.test(String(req.query.veiculo_id)))return fail(res,400,'Veículo inválido');q=q.eq('veiculo_id',req.query.veiculo_id)}
+    if(!admin)q=q.eq('registrado_por',user.id);
+    const {data,error}=await q;if(error)throw error;return res.json({items:data||[]});
+   }
    if(action==='usos'){
     let q=c.from('os_veiculo_usos').select('id,veiculo_id,sindico_id,registrado_por,inicio,fim,km_inicial,km_final,destino,finalidade,observacoes').order('inicio',{ascending:false}).limit(1000);
     if(!admin)q=q.eq('sindico_id',user.id);
@@ -46,6 +52,15 @@ module.exports=async(req,res)=>{
    const {data,error}=await c.from('os_veiculos').insert({placa,modelo,marca:clean(b.marca,80),identificacao:clean(b.identificacao,120)}).select('*').single();
    if(error){if(error.code==='23505')return fail(res,409,'Placa já cadastrada');throw error}
    await audit('cadastro',data.id,null);return res.status(201).json({item:data});
+  }
+  if(req.method==='POST'&&action==='abastecimento'){
+   const veiculo_id=String(b.veiculo_id||''),km=Number(b.km),litros=Number(b.litros),valor_total=Number(b.valor_total),quando=Date.parse(b.data_abastecimento),posto=clean(b.posto,120),observacoes=clean(b.observacoes,2000);
+   if(!UUID.test(veiculo_id)||!Number.isFinite(km)||km<0||!Number.isFinite(litros)||litros<=0||litros>1000||!Number.isFinite(valor_total)||valor_total<0||valor_total>100000||!Number.isFinite(quando)||quando>Date.now()+86400000||typeof b.tanque_cheio!=='boolean')return fail(res,400,'Dados de abastecimento inválidos');
+   const {data:v,error:ve}=await c.from('os_veiculos').select('id,status').eq('id',veiculo_id).maybeSingle();if(ve)throw ve;if(!v||v.status==='Inativo')return fail(res,400,'Veículo não disponível para abastecimento');
+   const {data:last,error:le}=await c.from('os_veiculo_abastecimentos').select('km').eq('veiculo_id',veiculo_id).order('km',{ascending:false}).limit(1);if(le)throw le;
+   if(last?.length&&km<Number(last[0].km))return fail(res,400,'Quilometragem inferior ao último abastecimento');
+   const {data,error}=await c.from('os_veiculo_abastecimentos').insert({veiculo_id,registrado_por:user.id,data_abastecimento:new Date(quando).toISOString(),km,litros,valor_total,tanque_cheio:b.tanque_cheio,posto,observacoes}).select('id,veiculo_id,data_abastecimento,km,litros,valor_total,tanque_cheio,posto').single();if(error)throw error;
+   await audit('abastecimento',veiculo_id,data.id,{km,litros,tanque_cheio:b.tanque_cheio});return res.status(201).json({item:data});
   }
   if(req.method==='POST'&&action==='uso'){
    const veiculo_id=String(b.veiculo_id||''),sindico_id=admin?String(b.sindico_id||''):user.id;
