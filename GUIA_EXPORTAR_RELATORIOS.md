@@ -29,3 +29,14 @@
 6. Repita em Condomínios, Processos, Chamados e Vistorias, incluindo filtros.
 7. Confira comportamento responsivo, permissões e relatórios vazios.
 8. Não publique em produção sem validação no ambiente real.
+
+## Correções e validações adicionais (23/10/2026)
+- Corrigidos os offsets da tabela xref e o comprimento dos streams PDF para contagem de bytes Latin-1. Isso evita arquivos PDF estruturalmente inconsistentes quando há acentos.
+- Corrigida a alternância de linhas duplicadas na tabela PDF.
+- Adicionada proteção básica contra fórmulas em células CSV iniciadas por =, +, -, @.
+- Botão de exportação ocultado quando não há sessão autenticada no Operacional.
+- Removido o botão antigo de exportação CSV da demonstração, mantendo um único acesso no canto superior direito.
+- Teste isolado executado com 180 registros: PDF de 11 páginas, offsets e streams consistentes; CSV com acentos e neutralização de fórmula.
+- Teste automatizado adicionado em `scripts/test-relatorios.js`, executável com `npm run test:reports`.
+- Workflow GitHub Actions adicionado em `.github/workflows/validar-exclusive-os.yml`; no momento da entrega **não havia execução de workflow confirmada**.
+- **Ainda pendente:** validação ponta a ponta no navegador real, Supabase e Vercel, incluindo permissões e download em celular. Sem isso não declarar pronto para produção.
