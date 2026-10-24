@@ -23,12 +23,14 @@ module.exports=async(req,res)=>{
   if(now-(recent.get(key)||0)<30000)return res.status(429).json({error:'Aguarde 30 segundos antes de enviar outro chamado'});
   const b=req.body||{};
   if(b.website)return res.status(400).json({error:'Envio inválido'});
+  const email=String(b.email||'').trim().toLowerCase();
+  const emailValido=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)&&email.length<=254;
   const condo=String(b.condominio_id||''),apto=String(b.apartamento||'').trim(),nome=String(b.nome||'').trim(),cpf=String(b.cpf||'').replace(/\D/g,''),categoria=String(b.categoria||''),obs=String(b.observacoes||'').trim(),urgente=b.urgente===true;
-  if(!UUID.test(condo)||apto.length<1||apto.length>30||nome.length<5||nome.length>150||!validCpf(cpf)||!categories.includes(categoria)||obs.length<10||obs.length>3000)return res.status(400).json({error:'Confira condomínio, apartamento, nome completo, CPF válido, categoria e observações (mínimo 10 caracteres)'});
+  if(!emailValido||!UUID.test(condo)||apto.length<1||apto.length>30||nome.length<5||nome.length>150||!validCpf(cpf)||!categories.includes(categoria)||obs.length<10||obs.length>3000)return res.status(400).json({error:'Confira condomínio, apartamento, nome completo, CPF válido, e-mail válido, categoria e observações (mínimo 10 caracteres)'});
   if(urgente)return res.status(400).json({error:'Em urgências, entre em contato com o plantão antes de abrir um chamado comum'});
   const {data:c,error:ce}=await client.from('os_condominios').select('id').eq('id',condo).eq('status','Ativo').maybeSingle();if(ce)throw ce;if(!c)return res.status(400).json({error:'Condomínio indisponível'});
   const protocolo='OS-'+new Date().toISOString().slice(0,10).replace(/-/g,'')+'-'+crypto.randomBytes(4).toString('hex').toUpperCase();
-  const {error:e}=await client.from('os_chamados').insert({condominio_id:condo,titulo:categoria+' · Apto '+apto,descricao:obs,status:'Aberto',prioridade:'Normal',protocolo,categoria,apartamento:apto,solicitante_nome:nome,solicitante_cpf_ultimos4:cpf.slice(-4),origem:'morador',prazo_resposta:new Date(now+48*3600000).toISOString()});
+  const {error:e}=await client.from('os_chamados').insert({condominio_id:condo,titulo:categoria+' · Apto '+apto,descricao:obs,status:'Aberto',prioridade:'Normal',protocolo,categoria,apartamento:apto,solicitante_nome:nome,solicitante_email:email,solicitante_cpf_ultimos4:cpf.slice(-4),origem:'morador',prazo_resposta:new Date(now+48*3600000).toISOString()});
   if(e)throw e;recent.set(key,now);return res.status(201).json({protocolo,status:'Aberto',prazo_resposta:new Date(now+48*3600000).toISOString()});
  }catch(e){console.error('portal-chamados:',e.message);return res.status(503).json({error:'Não foi possível registrar o chamado. Tente novamente.'})}
 };
