@@ -15,7 +15,7 @@ function clean(entity,body){
  for(const [k,v] of Object.entries(out))if(typeof v==='string')out[k]=v.trim();
  if(out.codigo!==undefined){if(typeof out.codigo!=='string'||out.codigo.length>40||!(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(out.codigo)))throw Error('Código do condomínio inválido');}
  if(out.endereco_completo!==undefined&&(typeof out.endereco_completo!=='string'||out.endereco_completo.length>500))throw Error('Endereço completo inválido');
- if(out.data_inicio_exclusive!==undefined){if(out.data_inicio_exclusive==='')out.data_inicio_exclusive=null;else if(typeof out.data_inicio_exclusive!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(out.data_inicio_exclusive)||Number.isNaN(Date.parse(out.data_inicio_exclusive)))throw Error('Data de início inválida');}
+ if(out.data_inicio_exclusive!==undefined){if(out.data_inicio_exclusive==='')out.data_inicio_exclusive=null;else if(typeof out.data_inicio_exclusive!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(out.data_inicio_exclusive)||Number.isNaN(Date.parse(out.data_inicio_exclusive)))throw Error('Data de início inválida');}
  if(out.sindico_user_id!==undefined&&out.sindico_user_id==='')out.sindico_user_id=null;
  if(out.sindico_user_id!==undefined&&out.sindico_user_id!==null&&!UUID.test(out.sindico_user_id))throw Error('Síndico inválido');
  if(out.nome!==undefined&&(!out.nome||out.nome.length>180||out.nome.length<2))throw Error('Nome inválido');
