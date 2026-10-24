@@ -109,7 +109,6 @@ module.exports=async function(req,res){
   if(entity==='chamados'&&req.body?.action==='encerrar'){
    const {data:ticket,error:te}=await client.from('os_chamados').select('status,solicitante_email,encerrado_em,avaliacao_nota').eq('id',id).single();if(te)throw te;
    if(ticket.encerrado_em||ticket.status==='Encerrado')return error(res,409,'Chamado já encerrado');
-   if(!ticket.solicitante_email)return error(res,400,'Informe o e-mail do morador antes de encerrar este chamado');
    const token=crypto.randomBytes(32).toString('hex');const hash=crypto.createHash('sha256').update(token).digest('hex');
    const {data:closed,error:ce}=await client.from('os_chamados').update({status:'Encerrado',encerrado_em:new Date().toISOString(),avaliacao_token_hash:hash,updated_at:new Date().toISOString()}).eq('id',id).is('encerrado_em',null).select(cfg.select).maybeSingle();if(ce)throw ce;if(!closed)return error(res,409,'Chamado já encerrado');
    await audit(client,actor,entity,id,'update');return res.status(200).json({item:closed,avaliacao_token:token});
