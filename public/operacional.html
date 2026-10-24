@@ -302,7 +302,7 @@ function isLate(x){return !!(x.prazo&&isOpen(x)&&x.prazo<new Date().toISOString(
 function ownerName(x){if(!x.responsavel_id)return 'Não atribuído';return state.users.find(u=>u.id===x.responsavel_id)?.nome||(x.responsavel_id===state.user?.id?state.user.nome:'Responsável vinculado')}
 function realTab(){return state.tab==='manutencoes'?'tarefas':state.tab}
 function displayCondo(id){return state.condominios.find(c=>c.id===id)?.nome||id||'—'}
-function setAuth(u){state.user=u;const financeNav=document.querySelector('#app>nav [data-tab="financeiro"]');if(financeNav)financeNav.hidden=!!u&&u.perfil!=='Master';$('login').hidden=!!u;$('app').hidden=!u;$('logout').hidden=!u;$('who').textContent=u?u.nome+' · '+u.perfil:''}
+function setAuth(u){state.user=u;const financeNav=document.querySelector('#app>nav [data-tab="financeiro"]');if(financeNav){financeNav.hidden=!!u&&u.perfil!=='Master';financeNav.style.display=financeNav.hidden?'none':'';}$('login').hidden=!!u;$('app').hidden=!u;$('logout').hidden=!u;$('who').textContent=u?u.nome+' · '+u.perfil:''}
 async function loadAll(){const entries=await Promise.all(Object.keys(specs).filter(k=>k!=='financeiro'||state.user?.perfil==='Master').map(async k=>[k,(await request('/api/operacoes?entity='+k)).items]));if(state.user?.perfil!=='Master')state.financeiro=[];for(const [k,items] of entries)state[k]=items;try{const m=await request('/api/manutencoes');state.manutencoes=m.items||[]}catch(e){state.manutencoes=[];console.error('Manutenções:',e.message)}try{const a=await request('/api/carteiras');state.users=a.users;state.links=a.links;}catch(e){state.users=[];state.links=[];}render();window.renderMaintenanceAlert?.();}
 
 let dashPeriodIndex=0;
