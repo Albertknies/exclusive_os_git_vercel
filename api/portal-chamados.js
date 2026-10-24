@@ -12,7 +12,7 @@ module.exports=async(req,res)=>{
   if(req.method==='GET'){
    const {data,error}=await client.from('os_condominios').select('id,nome').eq('status','Ativo').order('nome');
    if(error)throw error;
-   return res.status(200).json({condominios:data||[],categorias:categories});
+   return res.status(200).json({condominios:data||[],categorias:categories,plantao_telefone:process.env.PLANTAO_TELEFONE||null});
   }
   const origin=req.headers.origin,host=req.headers['x-forwarded-host']||req.headers.host,proto=req.headers['x-forwarded-proto']||'https';
   if(origin&&origin!==proto+'://'+host)return res.status(403).json({error:'Origem não autorizada'});
