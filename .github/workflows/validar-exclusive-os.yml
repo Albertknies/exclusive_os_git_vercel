@@ -1,0 +1,21 @@
+name: Validar Exclusive OS
+on:
+  push:
+    branches:
+      - feature/frota-tanque-cheio-20261016
+  pull_request:
+  workflow_dispatch:
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run test:reports
+      - run: npm run test:flows
