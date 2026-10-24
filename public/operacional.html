@@ -123,10 +123,12 @@ function renderBulkTransfer(){
  const source=$('bulkSource'),target=$('bulkTarget'),previousSource=source.value,previousTarget=target.value;
  const names=[...new Set(state.condominios.map(c=>c.sindico||'Sem responsável'))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
  source.replaceChildren();target.replaceChildren();
- for(const name of names){for(const select of [source,target]){const o=document.createElement('option');o.value=name;o.textContent=name;select.append(o)}}
+ for(const name of names){const o=document.createElement('option');o.value=name;o.textContent=name;source.append(o)}
+ const destinations=[...new Set([...names.filter(n=>n!=='Sem responsável'),...state.users.filter(u=>u.perfil==='Síndico'&&u.ativo).map(u=>u.nome)])].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ for(const name of destinations){const o=document.createElement('option');o.value=name;o.textContent=name;target.append(o)}
  if(names.includes(previousSource))source.value=previousSource;
- if(names.includes(previousTarget))target.value=previousTarget;
- if(source.value===target.value&&names.length>1)target.value=names.find(n=>n!==source.value);
+ if(destinations.includes(previousTarget))target.value=previousTarget;
+ if(source.value===target.value&&destinations.length>1)target.value=destinations.find(n=>n!==source.value);
  drawBulkSelection();
 }
 function drawBulkSelection(){
